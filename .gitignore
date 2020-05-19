@@ -1,0 +1,6 @@
+# master
+.*
+target/
+bin/  
+*.iml
+!.gitignore
