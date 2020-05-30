@@ -64,6 +64,25 @@ public class RESTController {
 		}
 	}
 
+	@RequestMapping(value = "/checkuserauth", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public Integer[] checkUserAuth(@RequestBody String[] encryptedUser) {
+		try {
+			int userId = Integer.parseInt(encryptedUser[0]);
+
+			User user = PostgresUserDAO.getInstance().getUser(userId);
+
+			ObjectMapper mapper = new ObjectMapper();
+
+			mapper.readValue(CryptoUtils.decrypt(user.getAuthorizationToken(), encryptedUser[1]), User.class);
+
+			return new Integer[] { 200 }; // 200 HttpStatus.OK
+
+		} catch (Exception e) {
+			return new Integer[] { 400 }; // 400 HttpStatus.BAD_REQUEST
+		}
+	}
+
 	@RequestMapping(value = "/loginconfirm", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
 	public Integer[] loginConfirm(@RequestBody String[] encryptedUserNameToken) {

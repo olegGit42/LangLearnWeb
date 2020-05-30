@@ -6,4 +6,6 @@ public interface IAppStatisticDAO {
 
 	public int getDownloadCount();
 
+	public int getTodayWordsRepeatCount(int userId);
+
 }

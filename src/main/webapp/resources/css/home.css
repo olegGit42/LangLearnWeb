@@ -12,10 +12,11 @@ html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,abbr,address
 
 
 .intro {
-    font-family: Georgia, serif; 
+/*     font-family: Georgia, serif;  */
+/*     font-size: 12pt; Размер шрифта в пунктах  */
     margin-bottom: 0.5em; /* Отступ снизу */
     line-height: 1.2;
-    font-size: 12pt; /* Размер шрифта в пунктах */ 
+	font: 11pt Verdana, Tahomma, Geneva;
 }
 
 
@@ -365,7 +366,7 @@ body {
 }
 
 .box.login {
-	height: 340px;
+	height: 320px;
 	width: 350px;
 	position: absolute;
 	left: 50%;

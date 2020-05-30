@@ -7,6 +7,10 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.0.1
+Login form and simplified user interface added  
+Colibri.jar v1.0.2.1
+
 ## v1.0.0.0
 Web part for ColibriDesktop app  
 You can register web user and store your data in web

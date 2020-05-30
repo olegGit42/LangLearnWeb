@@ -1,12 +1,15 @@
 package com.oleapp.colibriweb.model;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.oleapp.colibriweb.controller.WordController;
+import com.oleapp.colibriweb.dao.impl.PostgresWordDAO;
 import com.oleapp.colibriweb.service.AppSettings;
 
 import lombok.Data;
@@ -24,10 +27,41 @@ public class Word implements Serializable {
 	private long creationTime;
 	private int box;
 	private int repeateIndicator;
-	private Set<Integer> tagIdSet;
+	private Set<Integer> tagIdSet = new HashSet<>();
 
 	public static Word getNewInstance() {
 		return AppSettings.context.getBean("word", Word.class);
+	}
+
+	public Word afterInitNewWord(String word, String translate, int userId) {
+		final long time = System.currentTimeMillis();
+		this.id = PostgresWordDAO.getInstance().incrementAndGetMaxWordId(userId);
+		this.regTime = time;
+		this.creationTime = time;
+		this.word = word;
+		this.translate = translate;
+
+		return this;
+	}
+
+	public void setNewBoxAndUpdDate(int box) {
+		if (box < 0) {
+			box = 0;
+		}
+		if (box > 7) {
+			box = 7;
+		}
+		setBox(box);
+		inctementRepeateIndicator();
+	}
+
+	public void inctementRepeateIndicator() {
+		++repeateIndicator;
+		regTime = System.currentTimeMillis();
+	}
+
+	public long obtainRepTime() {
+		return regTime + WordController.timeDeltaArray[box];
 	}
 
 }

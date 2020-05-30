@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/security 
+	http://www.springframework.org/schema/security/spring-security.xsd
+		
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<http use-expressions="true">
+
+		<access-denied-handler error-page="/errors/accessDenied" />
+
+		<intercept-url pattern="/auth/user" access="hasRole('ROLE_USER')" />
+		<intercept-url pattern="/auth/admin" access="hasRole('ROLE_ADMIN')" />
+		<intercept-url pattern="/auth/**" access="isAuthenticated()" />
+
+		<form-login login-page='/login' 
+			default-target-url="/auth/user"
+			authentication-failure-url="/login?error=true" 
+			username-parameter="user_login"
+			password-parameter="password_login" />
+		
+		
+		<!-- переход на главную страницу (форму аутентификации) при выходе из системы -->
+		<logout logout-success-url="/login" logout-url="/auth/logout" />
+		
+		<!-- выключаем защиту от CSRF атак (чтобы не отвлекаться на ее настройку) -->
+		<csrf disabled="true"/>
+
+		<remember-me />
+
+	</http>
+
+
+	<authentication-manager>
+		<authentication-provider>
+			<password-encoder ref="bcrypt" />
+			<jdbc-user-service data-source-ref="dataSource" />
+		</authentication-provider>
+	</authentication-manager>
+
+	<beans:bean id="bcrypt" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+		<beans:constructor-arg name="strength" value="12" />
+	</beans:bean>
+
+
+</beans:beans>

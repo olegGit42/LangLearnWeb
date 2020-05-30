@@ -5,6 +5,7 @@ import static com.oleapp.colibriweb.dao.impl.PostgresUserDAO.ud_max_word_id;
 import static com.oleapp.colibriweb.dao.impl.PostgresUserDAO.ud_user_id;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.jdbc.core.RowMapper;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.oleapp.colibriweb.controller.WordController;
 import com.oleapp.colibriweb.dao.interfaces.ADataSource;
 import com.oleapp.colibriweb.dao.interfaces.IWordDAO;
 import com.oleapp.colibriweb.model.Word;
@@ -21,15 +23,20 @@ import com.oleapp.colibriweb.service.AppSettings;
 @Component
 public class PostgresWordDAO extends ADataSource implements IWordDAO {
 
-	private static final String WORD_TABLE = "public.word";
-	private static final String wt_user_id = "user_id";
-	private static final String wt_id = "id";
-	private static final String wt_word = "word";
-	private static final String wt_translate = "translate";
-	private static final String wt_date_repeat = "date_repeat";
-	private static final String wt_date_create = "date_create";
-	private static final String wt_box = "box";
-	private static final String wt_repeat_count = "repeat_count";
+	public static final String WORD_TABLE = "public.word";
+	public static final String wt_user_id = "user_id";
+	public static final String wt_id = "id";
+	public static final String wt_word = "word";
+	public static final String wt_translate = "translate";
+	public static final String wt_date_repeat = "date_repeat";
+	public static final String wt_date_create = "date_create";
+	public static final String wt_box = "box";
+	public static final String wt_repeat_count = "repeat_count";
+
+	public static final String TIME_DELTA = "public.time_delta";
+	public static final String td_box = "box";
+	public static final String td_time_delta = "time_delta";
+	// public static final String td_note = "note";
 
 	private static final RowMapper<Word> wordRowMapper = (rs, i) -> {
 		Word word = Word.getNewInstance();
@@ -113,6 +120,34 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 	public Word getWord(String word, int userId) {
 		try {
 			return jdbcTemplate.query(getSelectWordString(wt_word, "'" + word + "'", userId), wordRowMapper).get(0);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Word getNearestRepeatWord(int userId, boolean fromTodayWords) {
+		try {
+			long tomorrowDate = 1;
+			if (fromTodayWords) {
+				Date date = new Date();
+				date.setTime(System.currentTimeMillis() + WordController.day_ms);
+				date = WordController.dateFormat.parse(WordController.dateFormat.format(date));
+
+				tomorrowDate = date.getTime();
+			}
+
+			String sql = "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat
+					+ ", " + wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where "
+					+ wt_user_id + " = " + userId + " and " + wt_id + " = " + "(select min(w." + wt_id + ") from " + WORD_TABLE
+					+ " w, " + TIME_DELTA + " d where w." + wt_box + " = d." + td_box + " and w." + wt_user_id + " = " + userId
+					+ " and w." + wt_date_repeat + " + d." + td_time_delta + " = " + "(select min(ww." + wt_date_repeat + " + dd."
+					+ td_time_delta + ") from " + WORD_TABLE + " ww, " + TIME_DELTA + " dd where ww." + wt_box + " = dd." + td_box
+					+ " and ww." + wt_user_id + " = " + userId + " and (1 = " + tomorrowDate + " or ww." + wt_date_repeat
+					+ " + dd." + td_time_delta + " < " + tomorrowDate + ")))";
+
+			return jdbcTemplate.query(sql, wordRowMapper).get(0);
 		} catch (Exception e) {
 			return null;
 		}

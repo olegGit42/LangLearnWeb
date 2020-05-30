@@ -17,12 +17,18 @@ import com.oleapp.colibriweb.service.AppSettings;
 @Component
 public class PostgresUserDAO extends ADataSource implements IUserDAO {
 
-	private static final String USER_TABLE = "public.user";
+	private static final String USER_TABLE = "public.users";
 	private static final String ut_id = "id";
-	private static final String ut_name = "name";
-	private static final String ut_password_hash = "password_hash";
+	private static final String ut_name = "username";
+	private static final String ut_password_hash = "password";
 	private static final String ut_auth_token = "auth_token";
 	private static final String ut_auth_token_buffer = "auth_token_buffer";
+	// private static final String ut_enabled = "enabled";
+
+	private static final String AUTHORITIES_TABLE = "public.authorities";
+	// private static final String at_id = "id";
+	private static final String at_username = "username";
+	private static final String at_authority = "authority";
 
 	public static final String USER_DATA_TABLE = "public.user_data";
 	public static final String ud_user_id = "user_id";
@@ -50,6 +56,9 @@ public class PostgresUserDAO extends ADataSource implements IUserDAO {
 		String sqlInsertUser = "insert into " + USER_TABLE + "(" + ut_name + ", " + ut_password_hash + ") VALUES (:" + ut_name
 				+ ", :" + ut_password_hash + ")";
 
+		String sqlInsertAuth = "insert into " + AUTHORITIES_TABLE + "(" + at_username + ", " + at_authority + ") VALUES ('"
+				+ user.getUserName() + "', 'ROLE_USER')";
+
 		MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue(ut_name, user.getUserName());
 		params.addValue(ut_password_hash, user.getUserPasswordHash());
@@ -61,6 +70,7 @@ public class PostgresUserDAO extends ADataSource implements IUserDAO {
 			String sqlInsertUserData = "insert into " + USER_DATA_TABLE + "(" + ud_user_id + ", " + ud_max_word_id + ", "
 					+ ud_max_tag_id + ") VALUES (" + keyHolder.getKey().intValue() + ", 0, 0)";
 			jdbcTemplate.update(sqlInsertUserData);
+			jdbcTemplate.update(sqlInsertAuth);
 			user.setId(keyHolder.getKey().intValue());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -72,7 +82,7 @@ public class PostgresUserDAO extends ADataSource implements IUserDAO {
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public boolean update(User user) {
-		String sqlInsertUser = "update " + USER_TABLE + " set " + ut_name + " = :" + ut_name + ", " + ut_password_hash + " = :"
+		String sqlUpdateUser = "update " + USER_TABLE + " set " + ut_name + " = :" + ut_name + ", " + ut_password_hash + " = :"
 				+ ut_password_hash + ", " + ut_auth_token + " = :" + ut_auth_token + ", " + ut_auth_token_buffer + " = :"
 				+ ut_auth_token_buffer + "  where " + ut_id + " = :" + ut_id;
 
@@ -84,7 +94,7 @@ public class PostgresUserDAO extends ADataSource implements IUserDAO {
 		params.addValue(ut_auth_token_buffer, user.getAuthorizationTokenBuffer());
 
 		try {
-			namedParameterJdbcTemplate.update(sqlInsertUser, params);
+			namedParameterJdbcTemplate.update(sqlUpdateUser, params);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
