@@ -11,6 +11,14 @@
 </head>
 <body>
 
+	<script type='text/javascript'>
+		var dateVar = new Date();
+		var timezone = dateVar.getTimezoneOffset();
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( "GET", "http://localhost:8080/ColibriWeb/userTimeZone?timezoneOffset=" + timezone, false ); // false for synchronous request
+		xmlHttp.send( null );
+	</script>
+
 	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
 	|
 	<a href="logout"><spring:message code="Logout"/></a>
@@ -53,6 +61,7 @@
 		<footer>
 
 			<input type="submit" class="btnLogin" value=<spring:message code="Add"/> formaction="user/add_new_word">
+			<p><spring:message code="Number of all words"/> ${wordStat.allWordsCount}</p>
 
 		</footer>
 
@@ -63,7 +72,7 @@
 		<fieldset class="boxBody">
 
 			<div>
-				<spring:message code="Nearest repetition"/> ${repStat.repeatDateTime} | <spring:message code="Today repetition count"/> ${repStat.todayCount}
+				<spring:message code="Repetition"/>${wordStat.repeatDateTime} | <spring:message code="Today repetition count"/> ${wordStat.todayRepeatCount}
 			</div>
 
 			<div>

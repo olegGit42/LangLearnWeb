@@ -7,6 +7,13 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.0.2
+ - improve repetition info
+ - user page buttons alignment change
+ - home and login pages alignment top
+ - show number of all words
+ - time zone correction
+
 ## v1.0.0.1
 Login form and simplified user interface added  
 Colibri.jar v1.0.2.1

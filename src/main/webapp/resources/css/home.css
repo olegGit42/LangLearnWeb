@@ -368,10 +368,10 @@ body {
 .box.login {
 	height: 320px;
 	width: 350px;
-	position: absolute;
-	left: 50%;
-	top: 40%;
-	margin: -130px 0 0 -166px;
+/* 	position: absolute; */
+/* 	left: 50%; */
+/* 	top: 40%; */
+/* 	margin: -130px 0 0 -166px; */
 }
 
 .boxBody {

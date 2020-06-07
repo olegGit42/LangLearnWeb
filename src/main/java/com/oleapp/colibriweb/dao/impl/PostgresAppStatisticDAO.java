@@ -63,4 +63,16 @@ public class PostgresAppStatisticDAO extends ADataSource implements IAppStatisti
 		}
 	}
 
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public int getAllWordsCount(int userId) {
+		try {
+			String sql = "select count(w.*) as count from " + WORD_TABLE + " w where w." + wt_user_id + " = " + userId;
+			return jdbcTemplate.query(sql, (resultSet, rowNum) -> resultSet.getInt("count")).get(0);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
 }

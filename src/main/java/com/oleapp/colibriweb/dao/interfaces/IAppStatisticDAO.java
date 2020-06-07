@@ -8,4 +8,6 @@ public interface IAppStatisticDAO {
 
 	public int getTodayWordsRepeatCount(int userId);
 
+	public int getAllWordsCount(int userId);
+
 }

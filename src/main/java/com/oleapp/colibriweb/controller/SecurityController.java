@@ -5,8 +5,12 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.oleapp.colibriweb.dao.impl.PostgresAppStatisticDAO;
 import com.oleapp.colibriweb.dao.impl.PostgresUserDAO;
 import com.oleapp.colibriweb.dao.impl.PostgresWordDAO;
+import com.oleapp.colibriweb.dao.interfaces.IAppStatisticDAO;
 import com.oleapp.colibriweb.dao.interfaces.IUserDAO;
 import com.oleapp.colibriweb.model.User;
 import com.oleapp.colibriweb.model.Word;
@@ -30,19 +35,34 @@ import lombok.Data;
 public class SecurityController {
 
 	@Data
-	public static class RepeatStatistics {
-		private int todayCount;
+	public static class WordStatistics {
+		private int allWordsCount;
+		private int todayRepeatCount;
 		private String repeatDateTime;
 
-		public void refresh(int userId) {
-			todayCount = PostgresAppStatisticDAO.getInstance().getTodayWordsRepeatCount(userId);
+		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset) {
+
+			IAppStatisticDAO appStatistic = PostgresAppStatisticDAO.getInstance();
+
+			allWordsCount = appStatistic.getAllWordsCount(userId);
+
+			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId);
 
 			Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false);
 			if (repWord == null) {
-				repeatDateTime = "-";
+				repeatDateTime = ": " + localeSource.getMessage("no words", null, locale);
 			} else {
-				repeatDateTime = WordController.dateTimeFormat
-						.format(new Date(repWord.getRegTime() + WordController.timeDeltaArray[repWord.getBox()]));
+				String msg = null;
+				long repDate = repWord.getRegTime() + WordController.timeDeltaArray[repWord.getBox()] + timezoneOffset
+						- timezoneOffset;
+
+				if (repDate > System.currentTimeMillis()) {
+					msg = " " + localeSource.getMessage("will be", null, locale) + ": ";
+				} else {
+					msg = " " + localeSource.getMessage("was supposed to be", null, locale) + ": ";
+				}
+
+				repeatDateTime = msg + WordController.dateTimeFormat.format(new Date(repDate));
 			}
 		}
 	}
@@ -64,7 +84,7 @@ public class SecurityController {
 			@RequestParam(value = "error_empty_field", required = false) String error_empty_field,
 			@RequestParam(value = "success_add_word", required = false) String success_add_word,
 			@RequestParam(value = "show_word", required = false) String show_word, @ModelAttribute("newWord") Word newWord,
-			@ModelAttribute("repStat") RepeatStatistics repStat, Principal user, Locale locale) {
+			@ModelAttribute("wordStat") WordStatistics wordStat, Principal user, Locale locale, HttpSession session) {
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
@@ -82,7 +102,14 @@ public class SecurityController {
 		}
 
 		int userId = obtainUserId(user.getName());
-		repStat.refresh(userId);
+
+		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
+
+		if (timezoneOffset == null) {
+			timezoneOffset = 0L;
+		}
+
+		wordStat.refresh(userId, locale, localeSource, timezoneOffset);
 		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true);
 
 		Date date = new Date();
@@ -214,6 +241,37 @@ public class SecurityController {
 
 		model.setViewName("/errors/accessDenied");
 		return model;
+	}
+
+	@RequestMapping(value = "/userTimeZone", method = RequestMethod.GET)
+	public ResponseEntity<String> userTimeZone(@RequestParam(value = "timezoneOffset", required = false) String timezoneOffset,
+			HttpSession session) {
+		if (session.getAttribute("timezoneOffset") == null) {
+			session.setAttribute("timezoneOffset", getGMTSignedZone(timezoneOffset));
+		}
+		return new ResponseEntity<String>(HttpStatus.OK); // 200
+	}
+
+	public static long getGMTSignedZone(String timezoneOffset) {
+		timezoneOffset = timezoneOffset == null ? "" : timezoneOffset.trim();
+		if (!timezoneOffset.equals("")) {
+			Integer zMinutes = Integer.valueOf(timezoneOffset);
+			if (zMinutes < 0) {
+				zMinutes = zMinutes * (-1);
+			}
+
+			// hours 0 to 23
+			int hours = zMinutes / 60;
+			if (hours > 23) {
+				hours = hours / 24;
+			}
+
+			// minute conversion
+			int minutes = zMinutes - (hours * 60);
+
+			return hours * WordController.hour_ms + minutes * WordController.minute_ms;
+		}
+		return 0;
 	}
 
 }
