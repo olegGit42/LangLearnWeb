@@ -127,7 +127,7 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public Word getNearestRepeatWord(int userId, boolean fromTodayWords) {
+	public Word getNearestRepeatWord(int userId, boolean fromTodayWords, List<String> waitingWordList) {
 		try {
 			long tomorrowDate = 1;
 			if (fromTodayWords) {
@@ -138,6 +138,20 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 				tomorrowDate = date.getTime();
 			}
 
+			String waitingWords;
+
+			if (waitingWordList == null || waitingWordList.isEmpty()) {
+				waitingWords = "''";
+			} else {
+				String firstWaitingWord = waitingWordList.get(0);
+				waitingWords = "'" + firstWaitingWord + "'";
+				waitingWordList.remove(0);
+				for (String word : waitingWordList) {
+					waitingWords += ", '" + word + "'";
+				}
+				waitingWordList.add(firstWaitingWord);
+			}
+
 			String sql = "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat
 					+ ", " + wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where "
 					+ wt_user_id + " = " + userId + " and " + wt_id + " = " + "(select min(w." + wt_id + ") from " + WORD_TABLE
@@ -145,7 +159,8 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 					+ " and w." + wt_date_repeat + " + d." + td_time_delta + " = " + "(select min(ww." + wt_date_repeat + " + dd."
 					+ td_time_delta + ") from " + WORD_TABLE + " ww, " + TIME_DELTA + " dd where ww." + wt_box + " = dd." + td_box
 					+ " and ww." + wt_user_id + " = " + userId + " and (1 = " + tomorrowDate + " or ww." + wt_date_repeat
-					+ " + dd." + td_time_delta + " < " + tomorrowDate + ")))";
+					+ " + dd." + td_time_delta + " < " + tomorrowDate + ") and ww." + wt_word + " not in (" + waitingWords
+					+ ")))";
 
 			return jdbcTemplate.query(sql, wordRowMapper).get(0);
 		} catch (Exception e) {

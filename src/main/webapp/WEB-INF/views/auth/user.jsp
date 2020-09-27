@@ -72,7 +72,7 @@
 		<fieldset class="boxBody">
 
 			<div>
-				<spring:message code="Repetition"/>${wordStat.repeatDateTime} | <spring:message code="Today repetition count"/> ${wordStat.todayRepeatCount}
+				<spring:message code="Repetition"/>${wordStat.repeatDateTime} | <spring:message code="Box"/> ${wordStat.box} | <spring:message code="Today repetition count"/> ${wordStat.todayRepeatCount}
 			</div>
 
 			<div>

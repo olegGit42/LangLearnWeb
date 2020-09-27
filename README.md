@@ -7,6 +7,14 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.0.4
+New boxes added
+
+## v1.0.0.3
+ - box 1 = 10 minutes and waiting it
+ - when waiting 0 and 1 boxes, show other words
+ - show box
+
 ## v1.0.0.2
  - improve repetition info
  - user page buttons alignment change

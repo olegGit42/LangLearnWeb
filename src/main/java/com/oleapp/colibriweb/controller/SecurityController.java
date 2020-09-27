@@ -2,7 +2,9 @@ package com.oleapp.colibriweb.controller;
 
 import java.security.Principal;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpSession;
@@ -39,8 +41,10 @@ public class SecurityController {
 		private int allWordsCount;
 		private int todayRepeatCount;
 		private String repeatDateTime;
+		private String box;
 
-		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset) {
+		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset,
+				List<String> waitingWordList) {
 
 			IAppStatisticDAO appStatistic = PostgresAppStatisticDAO.getInstance();
 
@@ -48,9 +52,10 @@ public class SecurityController {
 
 			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId);
 
-			Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false);
+			Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false, waitingWordList);
 			if (repWord == null) {
 				repeatDateTime = ": " + localeSource.getMessage("no words", null, locale);
+				box = "-";
 			} else {
 				String msg = null;
 				long repDate = repWord.getRegTime() + WordController.timeDeltaArray[repWord.getBox()] + timezoneOffset
@@ -63,6 +68,7 @@ public class SecurityController {
 				}
 
 				repeatDateTime = msg + WordController.dateTimeFormat.format(new Date(repDate));
+				box = repWord.getBox() + "";
 			}
 		}
 	}
@@ -109,8 +115,7 @@ public class SecurityController {
 			timezoneOffset = 0L;
 		}
 
-		wordStat.refresh(userId, locale, localeSource, timezoneOffset);
-		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true);
+		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, null);
 
 		Date date = new Date();
 		date.setTime(System.currentTimeMillis() + WordController.minute_ms);
@@ -122,9 +127,18 @@ public class SecurityController {
 			e.printStackTrace();
 		}
 
-		if (repWord == null || (repWord.getBox() < 1 && repWord.obtainRepTime() > nowDateTime)) {
-			repWord = Word.getNewInstance();
+		List<String> waitingWordList = new ArrayList<>();
+		while (repWord != null && (repWord.getBox() < 2 && repWord.obtainRepTime() > nowDateTime)) {
+			waitingWordList.add(repWord.getWord());
+			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, waitingWordList);
 		}
+
+		if (repWord == null) {
+			repWord = Word.getNewInstance();
+			waitingWordList = null;
+		}
+
+		wordStat.refresh(userId, locale, localeSource, timezoneOffset, waitingWordList);
 
 		if (show_word == null) {
 			repWord.setTranslate(null);

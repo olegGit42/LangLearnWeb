@@ -16,7 +16,7 @@ public interface IWordDAO {
 
 	public Word getWord(String word, int userId);
 
-	public Word getNearestRepeatWord(int userId, boolean fromTodayWords);
+	public Word getNearestRepeatWord(int userId, boolean fromTodayWords, List<String> waitingWordList);
 
 	public boolean insertWords(List<Word> wordsList, int userId);
 
