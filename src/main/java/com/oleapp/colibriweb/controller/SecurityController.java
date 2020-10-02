@@ -227,6 +227,39 @@ public class SecurityController {
 		return "/auth/admin";
 	}
 
+	@RequestMapping(value = "/auth/forgettable", method = RequestMethod.GET)
+	public ModelAndView forgettablePage(Principal user) {
+
+		int userId = obtainUserId(user.getName());
+		List<Word> wordList = PostgresWordDAO.getInstance().getForgettableWords(userId);
+		StringBuilder wordSB = new StringBuilder();
+		wordList.forEach(w -> wordSB
+				.append("<p title=\"" + w.getTranslate() + "\">" + w.getRepeateIndicator() + " - " + w.getWord() + "</p>"));
+
+		ModelAndView model = new ModelAndView();
+		model.addObject("username", user.getName());
+		model.setViewName("/auth/forgettable");
+		model.addObject("wordList", wordSB);
+
+		return model;
+	}
+
+	@RequestMapping(value = "/auth/dictionary", method = RequestMethod.GET)
+	public ModelAndView dictionaryPage(Principal user) {
+
+		int userId = obtainUserId(user.getName());
+		List<Word> wordList = PostgresWordDAO.getInstance().getUserWords(userId);
+		StringBuilder wordSB = new StringBuilder();
+		wordList.forEach(w -> wordSB.append("<p>" + w.getWord() + " - " + w.getTranslate() + "</p>"));
+
+		ModelAndView model = new ModelAndView();
+		model.addObject("username", user.getName());
+		model.setViewName("/auth/dictionary");
+		model.addObject("wordList", wordSB);
+
+		return model;
+	}
+
 	@RequestMapping(value = { "/login" }, method = RequestMethod.GET)
 	public ModelAndView login(@RequestParam(value = "error", required = false) String error, Locale locale) {
 

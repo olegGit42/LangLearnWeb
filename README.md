@@ -7,6 +7,9 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.0.5
+Forgettable and Dictionary pages added
+
 ## v1.0.0.4
 New boxes added
 

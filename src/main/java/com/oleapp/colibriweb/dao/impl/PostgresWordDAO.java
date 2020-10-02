@@ -171,7 +171,7 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 	public String getSelectWordString(final String column, final String value, int userId) {
 		return "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat + ", "
 				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + column + " = "
-				+ value + " and " + wt_user_id + " = " + userId;
+				+ value + " and " + wt_user_id + " = " + userId + " ORDER BY " + wt_word;
 	}
 
 	@Override
@@ -221,6 +221,24 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 		} catch (Exception e) {
 			return new ArrayList<>();
 		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public List<Word> getForgettableWords(int userId) {
+		// TODO Auto-generated method stub
+		try {
+			return jdbcTemplate.query(getForgettableWordSQL(userId), wordRowMapper);
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+	}
+
+	public String getForgettableWordSQL(int userId) {
+		return "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat + ", "
+				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + wt_user_id + " = "
+				+ userId + " AND " + wt_repeat_count + " > 3 AND " + wt_box + " < 4 ORDER BY " + wt_repeat_count + " DESC, "
+				+ wt_word;
 	}
 
 	@Override

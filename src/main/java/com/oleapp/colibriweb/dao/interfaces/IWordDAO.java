@@ -26,6 +26,8 @@ public interface IWordDAO {
 
 	public List<Word> getUserWords(int userId);
 
+	public List<Word> getForgettableWords(int userId);
+
 	public int getMaxWordId(int userId);
 
 	public int incrementAndGetMaxWordId(int userId);

@@ -21,6 +21,10 @@
 
 	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
 	|
+	<a href="http://localhost:8080/ColibriWeb/auth/forgettable"><spring:message code="Forgettable"/></a>
+	|
+	<a href="http://localhost:8080/ColibriWeb/auth/dictionary"><spring:message code="Dictionary"/></a>
+	|
 	<a href="logout"><spring:message code="Logout"/></a>
 
 	<form:form method="POST" modelAttribute="newWord" action="user" class="box login">
