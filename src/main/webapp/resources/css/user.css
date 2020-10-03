@@ -360,7 +360,7 @@ body {
 
 .box.login {
 	height: 180px;
-	width: 650px;
+	width: 700px;
 /* 	position: absolute; */
 /* 	left: 40%; */
 /* 	top: 50%; */
@@ -415,7 +415,7 @@ body {
 	box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.06) inset, 0 0 1px #95a2a7 inset;
 	margin: 3px 0 4px;
 	padding: 8px 6px;
-	width: 510px;
+	width: 560px;
 /* 	display: block; */
 }
 

@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 
 public class WordController {
 	public static final long[] timeDeltaArray;
+	public static final String[] repeatPeriodArray;
 
 	public static final int MAX_BOX = 10;
 
@@ -32,6 +33,19 @@ public class WordController {
 		timeDeltaArray[8] = month_6_ms;
 		timeDeltaArray[9] = year_ms;
 		timeDeltaArray[10] = year_ms * 2;
+
+		repeatPeriodArray = new String[MAX_BOX + 1];
+		repeatPeriodArray[0] = "period_box_0";
+		repeatPeriodArray[1] = "period_box_1";
+		repeatPeriodArray[2] = "period_box_2";
+		repeatPeriodArray[3] = "period_box_3";
+		repeatPeriodArray[4] = "period_box_4";
+		repeatPeriodArray[5] = "period_box_5";
+		repeatPeriodArray[6] = "period_box_6";
+		repeatPeriodArray[7] = "period_box_7";
+		repeatPeriodArray[8] = "period_box_8";
+		repeatPeriodArray[9] = "period_box_9";
+		repeatPeriodArray[10] = "period_box_10";
 	}
 
 }

@@ -7,6 +7,12 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.0.6
+ - show forgettable word translation on click
+ - show repeat date on dictionary page
+ - box time info added
+ - repetition time info correctoin
+
 ## v1.0.0.5
 Forgettable and Dictionary pages added
 

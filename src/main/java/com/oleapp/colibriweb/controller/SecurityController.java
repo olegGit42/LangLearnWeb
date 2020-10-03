@@ -58,17 +58,17 @@ public class SecurityController {
 				box = "-";
 			} else {
 				String msg = null;
-				long repDate = repWord.getRegTime() + WordController.timeDeltaArray[repWord.getBox()] + timezoneOffset
-						- timezoneOffset;
 
-				if (repDate > System.currentTimeMillis()) {
+				if (repWord.obtainRepTime() > System.currentTimeMillis()) {
 					msg = " " + localeSource.getMessage("will be", null, locale) + ": ";
 				} else {
 					msg = " " + localeSource.getMessage("was supposed to be", null, locale) + ": ";
 				}
 
-				repeatDateTime = msg + WordController.dateTimeFormat.format(new Date(repDate));
-				box = repWord.getBox() + "";
+				repeatDateTime = msg + (repWord.getBox() < 2 ? repWord.obtainRepTimeString(timezoneOffset)
+						: repWord.obtainRepDateString(timezoneOffset));
+				box = repWord.getBox() + " | "
+						+ localeSource.getMessage(WordController.repeatPeriodArray[repWord.getBox()], null, locale);
 			}
 		}
 	}
@@ -114,6 +114,9 @@ public class SecurityController {
 		if (timezoneOffset == null) {
 			timezoneOffset = 0L;
 		}
+
+		// dev stub
+		timezoneOffset = 0L;
 
 		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, null);
 
@@ -228,13 +231,22 @@ public class SecurityController {
 	}
 
 	@RequestMapping(value = "/auth/forgettable", method = RequestMethod.GET)
-	public ModelAndView forgettablePage(Principal user) {
+	public ModelAndView forgettablePage(@RequestParam(value = "show_translate", required = false) final String show_translate,
+			Principal user) {
 
 		int userId = obtainUserId(user.getName());
 		List<Word> wordList = PostgresWordDAO.getInstance().getForgettableWords(userId);
 		StringBuilder wordSB = new StringBuilder();
-		wordList.forEach(w -> wordSB
-				.append("<p title=\"" + w.getTranslate() + "\">" + w.getRepeateIndicator() + " - " + w.getWord() + "</p>"));
+
+		wordList.forEach(w -> {
+			if (show_translate != null && w.getWord().equals(show_translate)) {
+				wordSB.append("<p title=\"" + w.getTranslate() + "\"><a href=\"forgettable\">" + w.getRepeateIndicator() + " - "
+						+ w.getWord() + " - " + w.getTranslate() + "</a></p>");
+			} else {
+				wordSB.append("<p title=\"" + w.getTranslate() + "\"><a href=\"?show_translate=" + w.getWord() + "\">"
+						+ w.getRepeateIndicator() + " - " + w.getWord() + "</a></p>");
+			}
+		});
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
@@ -245,12 +257,24 @@ public class SecurityController {
 	}
 
 	@RequestMapping(value = "/auth/dictionary", method = RequestMethod.GET)
-	public ModelAndView dictionaryPage(Principal user) {
+	public ModelAndView dictionaryPage(Principal user, HttpSession session) {
+
+		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
+
+		if (timezoneOffset == null) {
+			timezoneOffset = 0L;
+		}
+
+		// dev stub
+		timezoneOffset = 0L;
+
+		final Long timezoneOffsetFinal = timezoneOffset;
 
 		int userId = obtainUserId(user.getName());
 		List<Word> wordList = PostgresWordDAO.getInstance().getUserWords(userId);
 		StringBuilder wordSB = new StringBuilder();
-		wordList.forEach(w -> wordSB.append("<p>" + w.getWord() + " - " + w.getTranslate() + "</p>"));
+		wordList.forEach(w -> wordSB.append(
+				"<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord() + " - " + w.getTranslate() + "</p>"));
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());

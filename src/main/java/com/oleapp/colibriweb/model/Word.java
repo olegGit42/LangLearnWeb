@@ -1,6 +1,7 @@
 package com.oleapp.colibriweb.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -61,7 +62,27 @@ public class Word implements Serializable {
 	}
 
 	public long obtainRepTime() {
-		return regTime + WordController.timeDeltaArray[box];
+		return obtainRepTime(0);
+	}
+
+	public long obtainRepTime(long timezoneOffset) {
+		return regTime + WordController.timeDeltaArray[box] + timezoneOffset;
+	}
+
+	public String obtainRepTimeString() {
+		return obtainRepTimeString(0);
+	}
+
+	public String obtainRepTimeString(long timezoneOffset) {
+		return WordController.dateTimeFormat.format(new Date(obtainRepTime(timezoneOffset)));
+	}
+
+	public String obtainRepDateString() {
+		return obtainRepDateString(0);
+	}
+
+	public String obtainRepDateString(long timezoneOffset) {
+		return WordController.dateFormat.format(new Date(obtainRepTime(timezoneOffset)));
 	}
 
 }
