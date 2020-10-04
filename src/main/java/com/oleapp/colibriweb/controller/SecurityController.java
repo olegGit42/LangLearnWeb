@@ -52,7 +52,7 @@ public class SecurityController {
 
 			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId);
 
-			Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false, waitingWordList);
+			Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false, timezoneOffset, waitingWordList);
 			if (repWord == null) {
 				repeatDateTime = ": " + localeSource.getMessage("no words", null, locale);
 				box = "-";
@@ -109,16 +109,16 @@ public class SecurityController {
 
 		int userId = obtainUserId(user.getName());
 
-		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
-
-		if (timezoneOffset == null) {
-			timezoneOffset = 0L;
-		}
+		/*
+		 * Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
+		 * 
+		 * if (timezoneOffset == null) { timezoneOffset = 0L; }
+		 */
 
 		// dev stub
-		timezoneOffset = 0L;
+		Long timezoneOffset = 0L;
 
-		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, null);
+		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, null);
 
 		Date date = new Date();
 		date.setTime(System.currentTimeMillis() + WordController.minute_ms);
@@ -133,7 +133,7 @@ public class SecurityController {
 		List<String> waitingWordList = new ArrayList<>();
 		while (repWord != null && (repWord.getBox() < 2 && repWord.obtainRepTime() > nowDateTime)) {
 			waitingWordList.add(repWord.getWord());
-			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, waitingWordList);
+			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, waitingWordList);
 		}
 
 		if (repWord == null) {
@@ -259,14 +259,14 @@ public class SecurityController {
 	@RequestMapping(value = "/auth/dictionary", method = RequestMethod.GET)
 	public ModelAndView dictionaryPage(Principal user, HttpSession session) {
 
-		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
-
-		if (timezoneOffset == null) {
-			timezoneOffset = 0L;
-		}
+		/*
+		 * Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
+		 * 
+		 * if (timezoneOffset == null) { timezoneOffset = 0L; }
+		 */
 
 		// dev stub
-		timezoneOffset = 0L;
+		Long timezoneOffset = 0L;
 
 		final Long timezoneOffsetFinal = timezoneOffset;
 

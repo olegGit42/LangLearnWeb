@@ -127,15 +127,15 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public Word getNearestRepeatWord(int userId, boolean fromTodayWords, List<String> waitingWordList) {
+	public Word getNearestRepeatWord(int userId, boolean fromTodayWords, long timezoneOffset, List<String> waitingWordList) {
 		try {
 			long tomorrowDate = 1;
 			if (fromTodayWords) {
 				Date date = new Date();
-				date.setTime(System.currentTimeMillis() + WordController.day_ms);
+				date.setTime(System.currentTimeMillis() + WordController.day_ms + timezoneOffset);
 				date = WordController.dateFormat.parse(WordController.dateFormat.format(date));
 
-				tomorrowDate = date.getTime();
+				tomorrowDate = date.getTime() - timezoneOffset;
 			}
 
 			String waitingWords;
