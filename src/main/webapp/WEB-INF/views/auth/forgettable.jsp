@@ -8,8 +8,13 @@
 <link href="<c:url value="/resources/css/user.css" />" rel="stylesheet">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Wordkeeper | <spring:message code="Forgettable"/> | ${username}</title>
+	<script type='text/javascript'>
+		function gotoTranslation() {
+			window.location.hash="translation";
+		}
+	</script>
 </head>
-<body>
+<body onload="gotoTranslation()">
 
 	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
 	|

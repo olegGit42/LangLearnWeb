@@ -240,8 +240,8 @@ public class SecurityController {
 
 		wordList.forEach(w -> {
 			if (show_translate != null && w.getWord().equals(show_translate)) {
-				wordSB.append("<p title=\"" + w.getTranslate() + "\"><a href=\"forgettable\">" + w.getRepeateIndicator() + " - "
-						+ w.getWord() + " - " + w.getTranslate() + "</a></p>");
+				wordSB.append("<p title=\"" + w.getTranslate() + "\"><a name=\"#translation\"></a><a href=\"forgettable\"><b><u>"
+						+ w.getRepeateIndicator() + " - " + w.getWord() + " - " + w.getTranslate() + "</u></b></a></p>");
 			} else {
 				wordSB.append("<p title=\"" + w.getTranslate() + "\"><a href=\"?show_translate=" + w.getWord() + "\">"
 						+ w.getRepeateIndicator() + " - " + w.getWord() + "</a></p>");
