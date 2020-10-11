@@ -32,7 +32,7 @@ import com.oleapp.colibriweb.model.Word;
 import lombok.Data;
 
 @Controller
-@SessionAttributes("newWord")
+@SessionAttributes({ "newWord", "bufferWord" })
 @Data
 public class SecurityController {
 
@@ -81,6 +81,11 @@ public class SecurityController {
 		return Word.getNewInstance();
 	}
 
+	@ModelAttribute("bufferWord")
+	public StringBuilder createBufferWord() {
+		return new StringBuilder();
+	}
+
 	public int obtainUserId(String userName) {
 		return PostgresUserDAO.getInstance().getUser(userName).getId();
 	}
@@ -90,7 +95,8 @@ public class SecurityController {
 			@RequestParam(value = "error_empty_field", required = false) String error_empty_field,
 			@RequestParam(value = "success_add_word", required = false) String success_add_word,
 			@RequestParam(value = "show_word", required = false) String show_word, @ModelAttribute("newWord") Word newWord,
-			@ModelAttribute("wordStat") WordStatistics wordStat, Principal user, Locale locale, HttpSession session) {
+			@ModelAttribute("wordStat") WordStatistics wordStat, @ModelAttribute StringBuilder bufferWord, Principal user,
+			Locale locale, HttpSession session) {
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
@@ -118,7 +124,14 @@ public class SecurityController {
 		// dev stub
 		Long timezoneOffset = 0L;
 
-		Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, null);
+		Word repWord;
+
+		if (show_word == null) {
+			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, null);
+		} else {
+			repWord = PostgresWordDAO.getInstance().getWord(bufferWord.toString(), userId);
+			bufferWord.setLength(0);
+		}
 
 		Date date = new Date();
 		date.setTime(System.currentTimeMillis() + WordController.minute_ms);
@@ -183,7 +196,9 @@ public class SecurityController {
 	}
 
 	@RequestMapping(value = "/auth/user/show_word", method = RequestMethod.POST)
-	public String showWord(@ModelAttribute("repWord") Word repWord, Principal user) {
+	public String showWord(@ModelAttribute("repWord") Word repWord, @ModelAttribute StringBuilder bufferWord, Principal user) {
+		bufferWord.setLength(0);
+		bufferWord.append(repWord.getWord());
 		return "redirect:/auth/user?show_word=true";
 	}
 

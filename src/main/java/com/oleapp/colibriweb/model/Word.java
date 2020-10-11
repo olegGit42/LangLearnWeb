@@ -49,8 +49,8 @@ public class Word implements Serializable {
 		if (box < 0) {
 			box = 0;
 		}
-		if (box > 7) {
-			box = 7;
+		if (box > WordController.MAX_BOX) {
+			box = WordController.MAX_BOX;
 		}
 		setBox(box);
 		inctementRepeateIndicator();

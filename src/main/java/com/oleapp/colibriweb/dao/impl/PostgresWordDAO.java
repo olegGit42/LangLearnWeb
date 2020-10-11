@@ -119,7 +119,8 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 	@Transactional(propagation = Propagation.REQUIRED)
 	public Word getWord(String word, int userId) {
 		try {
-			return jdbcTemplate.query(getSelectWordString(wt_word, "'" + word + "'", userId), wordRowMapper).get(0);
+			return jdbcTemplate.query(getSelectWordString(wt_word, "'" + word.replaceAll("'", "''") + "'", userId), wordRowMapper)
+					.get(0);
 		} catch (Exception e) {
 			return null;
 		}

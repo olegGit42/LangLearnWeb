@@ -7,6 +7,11 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.0.7
+ - fix problem when click "Show" button (another word could be shown)
+ - fix problem with words contained ' character, when try get this words
+ - fix set new box >7 problem
+
 ## v1.0.0.6
  - show forgettable word translation on click
  - show repeat date on dictionary page
