@@ -43,8 +43,7 @@ public class SecurityController {
 		private String repeatDateTime;
 		private String box;
 
-		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset,
-				List<String> waitingWordList) {
+		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset, Word repWord) {
 
 			IAppStatisticDAO appStatistic = PostgresAppStatisticDAO.getInstance();
 
@@ -52,7 +51,10 @@ public class SecurityController {
 
 			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId);
 
-			Word repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false, timezoneOffset, waitingWordList);
+			if (repWord == null) {
+				repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false, timezoneOffset, null);
+			}
+
 			if (repWord == null) {
 				repeatDateTime = ": " + localeSource.getMessage("no words", null, locale);
 				box = "-";
@@ -149,18 +151,15 @@ public class SecurityController {
 			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, waitingWordList);
 		}
 
-		if (repWord == null) {
-			repWord = Word.getNewInstance();
-			waitingWordList = null;
-		}
+		wordStat.refresh(userId, locale, localeSource, timezoneOffset, repWord);
 
-		wordStat.refresh(userId, locale, localeSource, timezoneOffset, waitingWordList);
+		repWord = repWord == null ? Word.getNewInstance() : repWord;
 
 		if (show_word == null) {
 			repWord.setTranslate(null);
 		}
-		model.addObject("repWord", repWord);
 
+		model.addObject("repWord", repWord);
 		model.setViewName("/auth/user");
 
 		return model;
