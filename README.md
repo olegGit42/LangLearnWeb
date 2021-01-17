@@ -7,6 +7,18 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.0
+The closest in time are shown for repeat  
+New commands for words edition added  
+Delete text on middle mouse button click
+
+## v1.0.0.9
+Commands for words editing added  
+Clear fields on labels doubleclick
+
+## v1.0.0.8
+New boxes added (12 max)
+
 ## v1.0.0.7
  - fix problem when click "Show" button (another word could be shown)
  - fix problem with words contained ' character, when try get this words

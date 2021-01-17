@@ -17,7 +17,13 @@
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open( "GET", "http://localhost:8080/ColibriWeb/userTimeZone?timezoneOffset=" + timezone, false ); // false for synchronous request
 		xmlHttp.send( null );
+		
+		function clearContents(id) {
+		    document.getElementById(id).value = '';
+		}
 	</script>
+
+    
 
 	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
 	|
@@ -39,13 +45,13 @@
 			</div>
 
 			<div>
-				<label for='wordNew'> <spring:message code="Word"/> </label>
-				<form:input type='text' name='wordNew' path='word'/>
+				<label for='wordNew' ondblclick="clearContents('wordNew');"> <spring:message code="Word"/> </label>
+				<form:input id="wordNew" type='text' name='wordNew' path='word' />
 			</div>
 
 			<div>
-				<label for='translateNew'> <spring:message code="Translate"/> </label>
-				<form:input type='text' name='translateNew' path='translate' />
+				<label for='translateNew' ondblclick="clearContents('translateNew');"> <spring:message code="Translate"/> </label>
+				<form:input id="translateNew" type='text' name='translateNew' path='translate' />
 			</div>
 					
 			<c:if test="${not empty error_add_word}">
@@ -100,6 +106,22 @@
 		</footer>
 
 	</form:form>
+
+	<script type='text/javascript'>
+		document.getElementById('wordNew').addEventListener('mousedown',
+				function(e) {
+					if (e.which == 2) {
+						this.value = '';
+					}
+				});
+
+		document.getElementById('translateNew').addEventListener('mousedown',
+				function(e) {
+					if (e.which == 2) {
+						this.value = '';
+					}
+				});
+	</script>
 
 </body>
 </html>

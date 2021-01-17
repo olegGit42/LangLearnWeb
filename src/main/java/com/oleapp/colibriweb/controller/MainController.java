@@ -31,6 +31,11 @@ public class MainController {
 		return "index";
 	}
 
+	@RequestMapping(value = "/registration", method = RequestMethod.GET)
+	public String registrationPage() {
+		return "registration";
+	}
+
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public void downloadColibriRar(HttpServletRequest request, HttpServletResponse response) {
 		downloadColibri(request, response);

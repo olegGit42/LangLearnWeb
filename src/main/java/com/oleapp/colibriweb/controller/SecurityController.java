@@ -166,15 +166,20 @@ public class SecurityController {
 	}
 
 	@RequestMapping(value = "/auth/user/add_new_word", method = RequestMethod.POST)
-	public String addWord(@ModelAttribute("newWord") Word newWord, Principal user) {
+	public String addWord(@ModelAttribute("newWord") Word newWord, @ModelAttribute StringBuilder bufferWord, Principal user) {
 
-		if (!newWord.getWord().trim().equals("") && !newWord.getTranslate().trim().equals("")) {
+		String word = newWord.getWord().trim();
+		String translate = newWord.getTranslate().trim();
+
+		if (!word.equals("") && !translate.equals("")) {
 
 			IUserDAO userDAO = PostgresUserDAO.getInstance();
 			User authUser = userDAO.getUser(user.getName());
 
-			if (PostgresWordDAO.getInstance().insert(Word.getNewInstance().afterInitNewWord(newWord.getWord().trim(),
-					newWord.getTranslate().trim(), authUser.getId()), authUser.getId())) {
+			Word wordForCheck = PostgresWordDAO.getInstance().getWord(word, authUser.getId());
+
+			if (wordForCheck == null && PostgresWordDAO.getInstance()
+					.insert(Word.getNewInstance().afterInitNewWord(word, translate, authUser.getId()), authUser.getId())) {
 
 				authUser.setAuthorizationToken(null);
 				authUser.setAuthorizationTokenBuffer(null);
@@ -185,6 +190,44 @@ public class SecurityController {
 				newWord.setTranslate("");
 
 				return "redirect:/auth/user?success_add_word=true";
+			} else if (wordForCheck != null) {
+				if (WordController.doCommand(authUser.getId(), wordForCheck, WordController.commandResolver(translate),
+						translate)) {
+
+					authUser.setAuthorizationToken(null);
+					authUser.setAuthorizationTokenBuffer(null);
+
+					userDAO.update(authUser);
+
+					switch (WordController.commandResolver(translate)) {
+					case ADD:
+						newWord.setTranslate("ADDED " + translate);
+						break;
+					case REPLACE:
+						newWord.setTranslate("REPLACED " + translate);
+						break;
+					case FORGOT:
+						newWord.setTranslate("FORGOTTEN");
+						break;
+					case DELETE:
+						newWord.setTranslate("DELETED " + wordForCheck.getTranslate());
+						break;
+					case SHOW:
+						bufferWord.setLength(0);
+						bufferWord.append(word);
+						return "redirect:/auth/user?show_word=true";
+					case BACK:
+						newWord.setTranslate("BOX - 1");
+						break;
+					case NEXT:
+						newWord.setTranslate("BOX + 1");
+						break;
+					}
+
+					return "redirect:/auth/user?success_add_word=true";
+				} else {
+					return "redirect:/auth/user?error_add=true";
+				}
 			} else {
 				return "redirect:/auth/user?error_add=true";
 			}

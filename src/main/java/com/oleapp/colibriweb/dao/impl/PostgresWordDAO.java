@@ -157,11 +157,11 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 					+ ", " + wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where "
 					+ wt_user_id + " = " + userId + " and " + wt_id + " = " + "(select min(w." + wt_id + ") from " + WORD_TABLE
 					+ " w, " + TIME_DELTA + " d where w." + wt_box + " = d." + td_box + " and w." + wt_user_id + " = " + userId
-					+ " and w." + wt_date_repeat + " + d." + td_time_delta + " = " + "(select min(ww." + wt_date_repeat + " + dd."
-					+ td_time_delta + ") from " + WORD_TABLE + " ww, " + TIME_DELTA + " dd where ww." + wt_box + " = dd." + td_box
-					+ " and ww." + wt_user_id + " = " + userId + " and (1 = " + tomorrowDate + " or ww." + wt_date_repeat
-					+ " + dd." + td_time_delta + " < " + tomorrowDate + ") and ww." + wt_word + " not in (" + waitingWords
-					+ ")))";
+					+ " and w." + wt_date_repeat + " + d." + td_time_delta + " = " + "(select "
+					+ (tomorrowDate == 1 ? "min" : "max") + "(ww." + wt_date_repeat + " + dd." + td_time_delta + ") from "
+					+ WORD_TABLE + " ww, " + TIME_DELTA + " dd where ww." + wt_box + " = dd." + td_box + " and ww." + wt_user_id
+					+ " = " + userId + " and (1 = " + tomorrowDate + " or ww." + wt_date_repeat + " + dd." + td_time_delta + " < "
+					+ tomorrowDate + ") and ww." + wt_word + " not in (" + waitingWords + ")))";
 
 			return jdbcTemplate.query(sql, wordRowMapper).get(0);
 		} catch (Exception e) {
