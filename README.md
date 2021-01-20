@@ -7,6 +7,17 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.1
+Min box word are shown for repeat  
+Dictionary can sorted by date  
+Remove title from fogettable words  
+Fix empty show_word problem  
+Improve show forgettable words logic  
+Add Refresh button on Add/Reteat page  
+Change Logout button location  
+Show words quantity on Forgettable and Dictionary pages  
+Can show all words on Forgettable page
+
 ## v1.0.1.0
 The closest in time are shown for repeat  
 New commands for words edition added  

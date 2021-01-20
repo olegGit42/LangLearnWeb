@@ -3,6 +3,7 @@ package com.oleapp.colibriweb.controller;
 import java.security.Principal;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -97,8 +98,9 @@ public class SecurityController {
 			@RequestParam(value = "error_empty_field", required = false) String error_empty_field,
 			@RequestParam(value = "success_add_word", required = false) String success_add_word,
 			@RequestParam(value = "show_word", required = false) String show_word, @ModelAttribute("newWord") Word newWord,
-			@ModelAttribute("wordStat") WordStatistics wordStat, @ModelAttribute StringBuilder bufferWord, Principal user,
-			Locale locale, HttpSession session) {
+			@ModelAttribute("wordStat") WordStatistics wordStat, @ModelAttribute StringBuilder bufferWord,
+			@RequestParam(value = "refresh", required = false) String refresh, Principal user, Locale locale,
+			HttpSession session) {
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
@@ -128,11 +130,10 @@ public class SecurityController {
 
 		Word repWord;
 
-		if (show_word == null) {
+		if (show_word == null || bufferWord.toString().isEmpty()) {
 			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, null);
 		} else {
 			repWord = PostgresWordDAO.getInstance().getWord(bufferWord.toString(), userId);
-			bufferWord.setLength(0);
 		}
 
 		Date date = new Date();
@@ -155,12 +156,19 @@ public class SecurityController {
 
 		repWord = repWord == null ? Word.getNewInstance() : repWord;
 
-		if (show_word == null) {
+		if (show_word == null || bufferWord.toString().isEmpty()) {
 			repWord.setTranslate(null);
 		}
 
 		model.addObject("repWord", repWord);
 		model.setViewName("/auth/user");
+
+		bufferWord.setLength(0);
+
+		if (refresh != null && refresh.equals("true")) {
+			newWord.setWord("");
+			newWord.setTranslate("");
+		}
 
 		return model;
 	}
@@ -289,19 +297,25 @@ public class SecurityController {
 
 	@RequestMapping(value = "/auth/forgettable", method = RequestMethod.GET)
 	public ModelAndView forgettablePage(@RequestParam(value = "show_translate", required = false) final String show_translate,
-			Principal user) {
+			@RequestParam(value = "all", required = false) final String all, Principal user, Locale locale) {
+
+		boolean isAll = ((all != null && all.equals("true")) ? true : false);
 
 		int userId = obtainUserId(user.getName());
-		List<Word> wordList = PostgresWordDAO.getInstance().getForgettableWords(userId);
+		List<Word> wordList = PostgresWordDAO.getInstance().getForgettableWords(userId, isAll);
 		StringBuilder wordSB = new StringBuilder();
+		wordSB.append("<p>" + localeSource.getMessage("Quantity", null, locale) + " " + (wordList == null ? 0 : wordList.size())
+				+ "</p>");
 
 		wordList.forEach(w -> {
 			if (show_translate != null && w.getWord().equals(show_translate)) {
-				wordSB.append("<h3 id=\"translation\"><a href=\"forgettable\"><u>" + w.getRepeateIndicator() + " - " + w.getWord()
-						+ " - " + w.getTranslate() + "</u></a></h3>");
+				wordSB.append("<h3 id=\"translation\"><a href=\"forgettable?all=" + isAll + "\"><u>" + w.getRepeateIndicator()
+						+ " - " + localeSource.getMessage("b", null, locale) + w.getBox() + " - " + w.getWord() + " - "
+						+ w.getTranslate() + "</u></a></h3>");
 			} else {
-				wordSB.append("<p title=\"" + w.getTranslate() + "\"><a href=\"?show_translate=" + w.getWord() + "\">"
-						+ w.getRepeateIndicator() + " - " + w.getWord() + "</a></p>");
+				wordSB.append("<p><a href=\"?all=" + isAll + "&show_translate=" + w.getWord() + "#translation\">"
+						+ w.getRepeateIndicator() + " - " + localeSource.getMessage("b", null, locale) + w.getBox() + " - "
+						+ w.getWord() + "</a></p>");
 			}
 		});
 
@@ -310,11 +324,18 @@ public class SecurityController {
 		model.setViewName("/auth/forgettable");
 		model.addObject("wordList", wordSB);
 
+		if (isAll) {
+			model.addObject("all", "");
+		} else {
+			model.addObject("all", "?all=true");
+		}
+
 		return model;
 	}
 
 	@RequestMapping(value = "/auth/dictionary", method = RequestMethod.GET)
-	public ModelAndView dictionaryPage(Principal user, HttpSession session) {
+	public ModelAndView dictionaryPage(@RequestParam(value = "sort", required = false) final String sort, Principal user,
+			Locale locale, HttpSession session) {
 
 		/*
 		 * Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
@@ -330,13 +351,28 @@ public class SecurityController {
 		int userId = obtainUserId(user.getName());
 		List<Word> wordList = PostgresWordDAO.getInstance().getUserWords(userId);
 		StringBuilder wordSB = new StringBuilder();
-		wordList.forEach(w -> wordSB.append(
-				"<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord() + " - " + w.getTranslate() + "</p>"));
+		wordSB.append("<p>" + localeSource.getMessage("Quantity", null, locale) + " " + (wordList == null ? 0 : wordList.size())
+				+ "</p>");
+
+		if (sort != null && sort.equals("date")) {
+			wordList.stream().sorted(Comparator.comparingLong(w -> w.obtainRepTime(timezoneOffsetFinal)))
+					.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord() + " - "
+							+ w.getTranslate() + "</p>"));
+		} else {
+			wordList.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord() + " - "
+					+ w.getTranslate() + "</p>"));
+		}
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
 		model.setViewName("/auth/dictionary");
 		model.addObject("wordList", wordSB);
+
+		if (sort != null && sort.equals("date")) {
+			model.addObject("sort", "");
+		} else {
+			model.addObject("sort", "?sort=date");
+		}
 
 		return model;
 	}
