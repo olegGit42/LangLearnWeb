@@ -7,6 +7,9 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.2
+Planned words can be added
+
 ## v1.0.1.1
 Min box word are shown for repeat  
 Dictionary can sorted by date  

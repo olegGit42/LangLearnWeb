@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.oleapp.colibriweb.controller.WordController;
 import com.oleapp.colibriweb.dao.interfaces.ADataSource;
 import com.oleapp.colibriweb.dao.interfaces.IAppStatisticDAO;
+import com.oleapp.colibriweb.model.Word;
 import com.oleapp.colibriweb.service.AppSettings;
 
 @Component
@@ -67,7 +68,8 @@ public class PostgresAppStatisticDAO extends ADataSource implements IAppStatisti
 	@Override
 	public int getAllWordsCount(int userId) {
 		try {
-			String sql = "select count(w.*) as count from " + WORD_TABLE + " w where w." + wt_user_id + " = " + userId;
+			String sql = "select count(w.*) as count from " + WORD_TABLE + " w where w." + wt_user_id + " = " + userId + " and w."
+					+ wt_date_repeat + " <> " + Word.PLANNED_TIME;
 			return jdbcTemplate.query(sql, (resultSet, rowNum) -> resultSet.getInt("count")).get(0);
 		} catch (Exception e) {
 			e.printStackTrace();

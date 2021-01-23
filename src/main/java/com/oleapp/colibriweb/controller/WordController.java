@@ -25,7 +25,8 @@ public class WordController {
 
 	public static enum Command {
 
-		ADD("[add]"), REPLACE("[rep]"), DELETE("[del]"), FORGOT("[fgt]"), SHOW("[shw]"), NEXT("[nxt]"), BACK("[bck]");
+		ADD("[add]"), REPLACE("[rep]"), DELETE("[del]"), FORGOT("[fgt]"), SHOW("[shw]"), NEXT("[nxt]"), BACK("[bck]"),
+		ADD_PLANNED("add planned");
 
 		public final String command;
 
@@ -109,6 +110,15 @@ public class WordController {
 				word.setNewBoxAndUpdDate(word.getBox() + 1);
 				PostgresWordDAO.getInstance().update(word, userId);
 				return true;
+			case ADD_PLANNED:
+				try {
+					translate = translate.replace(Command.ADD_PLANNED.command, "").trim();
+					int count = Math.abs(Integer.parseInt(translate));
+					int result = PostgresWordDAO.getInstance().startRepeatPlannedWords(userId, count);
+					return (result > 0);
+				} catch (Exception e) {
+					return false;
+				}
 			default:
 				return false;
 			}

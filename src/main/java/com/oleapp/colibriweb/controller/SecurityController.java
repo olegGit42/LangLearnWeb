@@ -168,6 +168,7 @@ public class SecurityController {
 		if (refresh != null && refresh.equals("true")) {
 			newWord.setWord("");
 			newWord.setTranslate("");
+			newWord.setIsPlanned(false);
 		}
 
 		return model;
@@ -176,18 +177,25 @@ public class SecurityController {
 	@RequestMapping(value = "/auth/user/add_new_word", method = RequestMethod.POST)
 	public String addWord(@ModelAttribute("newWord") Word newWord, @ModelAttribute StringBuilder bufferWord, Principal user) {
 
+		IUserDAO userDAO = PostgresUserDAO.getInstance();
+		User authUser = userDAO.getUser(user.getName());
+
 		String word = newWord.getWord().trim();
 		String translate = newWord.getTranslate().trim();
 
-		if (!word.equals("") && !translate.equals("")) {
-
-			IUserDAO userDAO = PostgresUserDAO.getInstance();
-			User authUser = userDAO.getUser(user.getName());
+		if (translate.isEmpty() && WordController.commandResolver(word) == WordController.Command.ADD_PLANNED) {
+			if (WordController.doCommand(authUser.getId(), null, WordController.Command.ADD_PLANNED, word)) {
+				return "redirect:/auth/user?success_add_word=true";
+			} else {
+				return "redirect:/auth/user?error_add=true";
+			}
+		} else if (!word.isEmpty() && !translate.isEmpty()) {
 
 			Word wordForCheck = PostgresWordDAO.getInstance().getWord(word, authUser.getId());
 
-			if (wordForCheck == null && PostgresWordDAO.getInstance()
-					.insert(Word.getNewInstance().afterInitNewWord(word, translate, authUser.getId()), authUser.getId())) {
+			if (wordForCheck == null && PostgresWordDAO.getInstance().insert(
+					Word.getNewInstance().afterInitNewWord(word, translate, authUser.getId(), newWord.getIsPlanned()),
+					authUser.getId())) {
 
 				authUser.setAuthorizationToken(null);
 				authUser.setAuthorizationTokenBuffer(null);
@@ -196,6 +204,7 @@ public class SecurityController {
 
 				newWord.setWord("");
 				newWord.setTranslate("");
+				newWord.setIsPlanned(false);
 
 				return "redirect:/auth/user?success_add_word=true";
 			} else if (wordForCheck != null) {
@@ -230,6 +239,8 @@ public class SecurityController {
 					case NEXT:
 						newWord.setTranslate("BOX + 1");
 						break;
+					default:
+						return "redirect:/auth/user?error_add=true";
 					}
 
 					return "redirect:/auth/user?success_add_word=true";

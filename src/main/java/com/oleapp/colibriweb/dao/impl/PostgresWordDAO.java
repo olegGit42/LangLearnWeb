@@ -280,4 +280,43 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 		return newId;
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public int startRepeatPlannedWords(int userId, int count) {
+		try {
+			List<Word> plannedWordsList = getPlannedWords(userId, count);
+
+			if (plannedWordsList == null || plannedWordsList.size() == 0) {
+				return 0;
+			}
+
+			for (Word word : plannedWordsList) {
+				word.setNewBoxAndUpdDate(0);
+				this.update(word, userId);
+			}
+
+			return plannedWordsList.size();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public List<Word> getPlannedWords(int userId, int count) {
+		try {
+			return jdbcTemplate.query(getPlannedWordSql(userId, count), wordRowMapper);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public String getPlannedWordSql(int userId, int count) {
+		return "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat + ", "
+				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + wt_date_repeat
+				+ " = " + Word.PLANNED_TIME + " and " + wt_user_id + " = " + userId + " ORDER BY " + wt_id + " limit " + count;
+	}
+
 }

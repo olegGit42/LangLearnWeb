@@ -32,4 +32,8 @@ public interface IWordDAO {
 
 	public int incrementAndGetMaxWordId(int userId);
 
+	public int startRepeatPlannedWords(int userId, int count);
+
+	public List<Word> getPlannedWords(int userId, int count);
+
 }

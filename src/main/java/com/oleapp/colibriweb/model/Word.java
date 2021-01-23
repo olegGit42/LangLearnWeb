@@ -9,6 +9,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.oleapp.colibriweb.controller.WordController;
 import com.oleapp.colibriweb.dao.impl.PostgresWordDAO;
 import com.oleapp.colibriweb.service.AppSettings;
@@ -21,6 +22,8 @@ import lombok.Data;
 public class Word implements Serializable {
 	private static final long serialVersionUID = -1943399776402594085L;
 
+	public static final long PLANNED_TIME = 10_000_000_000_000L;
+
 	private int id;
 	private String word;
 	private String translate;
@@ -29,15 +32,17 @@ public class Word implements Serializable {
 	private int box;
 	private int repeateIndicator;
 	private Set<Integer> tagIdSet = new HashSet<>();
+	@JsonIgnore
+	private boolean isPlanned = false;
 
 	public static Word getNewInstance() {
 		return AppSettings.context.getBean("word", Word.class);
 	}
 
-	public Word afterInitNewWord(String word, String translate, int userId) {
+	public Word afterInitNewWord(String word, String translate, int userId, boolean isPlannedWord) {
 		final long time = System.currentTimeMillis();
 		this.id = PostgresWordDAO.getInstance().incrementAndGetMaxWordId(userId);
-		this.regTime = time;
+		this.regTime = (isPlannedWord ? PLANNED_TIME : time);
 		this.creationTime = time;
 		this.word = word;
 		this.translate = translate;
@@ -83,6 +88,14 @@ public class Word implements Serializable {
 
 	public String obtainRepDateString(long timezoneOffset) {
 		return WordController.dateFormat.format(new Date(obtainRepTime(timezoneOffset)));
+	}
+
+	public boolean getIsPlanned() {
+		return isPlanned;
+	}
+
+	public void setIsPlanned(boolean isPlanned) {
+		this.isPlanned = isPlanned;
 	}
 
 }

@@ -75,6 +75,8 @@
 		<footer>
 
 			<input type="submit" class="btnLogin" value=<spring:message code="Add"/> formaction="user/add_new_word">
+			<form:checkbox name="planned" path="isPlanned" class="checkPlanned" />
+			<label for="planned"><spring:message code="Planned"/></label>
 			<p><spring:message code="Number of all words"/> ${wordStat.allWordsCount}</p>
 
 		</footer>

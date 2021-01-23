@@ -395,7 +395,7 @@ body {
 }
 
 .box footer label {
-	float: left;
+	float: right;
 	margin: 4px 0 0;
 }
 
@@ -574,6 +574,13 @@ body {
 	padding: 11px 16px;
 	margin-left: 12px;
 	margin-top:10px;
+}
+
+.checkPlanned {
+	padding: 11px 16px;
+	margin-left: 12px;
+	margin-top:10px;
+	float: right;
 }
 
 .btnLogin:hover,.btnLogin:focus,.btnLogin:active {
