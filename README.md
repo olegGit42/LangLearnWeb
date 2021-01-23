@@ -7,6 +7,11 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.3
+Improved "start repeat planned words" logic  
+Added link for "add planned 10" insert  
+Fix error message, when no planned words
+
 ## v1.0.1.2
 Planned words can be added
 

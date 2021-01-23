@@ -96,6 +96,7 @@ public class SecurityController {
 	@RequestMapping(value = "/auth/user", method = RequestMethod.GET)
 	public ModelAndView userPage(@RequestParam(value = "error_add", required = false) String error_add,
 			@RequestParam(value = "error_empty_field", required = false) String error_empty_field,
+			@RequestParam(value = "error_no_planned", required = false) String error_no_planned,
 			@RequestParam(value = "success_add_word", required = false) String success_add_word,
 			@RequestParam(value = "show_word", required = false) String show_word, @ModelAttribute("newWord") Word newWord,
 			@ModelAttribute("wordStat") WordStatistics wordStat, @ModelAttribute StringBuilder bufferWord,
@@ -115,6 +116,10 @@ public class SecurityController {
 
 		if (success_add_word != null) {
 			model.addObject("success_add_word", localeSource.getMessage("success_add_word", null, locale));
+		}
+
+		if (error_no_planned != null) {
+			model.addObject("error_no_planned", localeSource.getMessage("error_no_planned", null, locale));
 		}
 
 		int userId = obtainUserId(user.getName());
@@ -165,10 +170,13 @@ public class SecurityController {
 
 		bufferWord.setLength(0);
 
-		if (refresh != null && refresh.equals("true")) {
+		if (refresh != null && (refresh.equals("true") || refresh.equals("planned"))) {
 			newWord.setWord("");
 			newWord.setTranslate("");
 			newWord.setIsPlanned(false);
+			if (refresh.equals("planned")) {
+				newWord.setWord("add planned 10");
+			}
 		}
 
 		return model;
@@ -187,7 +195,7 @@ public class SecurityController {
 			if (WordController.doCommand(authUser.getId(), null, WordController.Command.ADD_PLANNED, word)) {
 				return "redirect:/auth/user?success_add_word=true";
 			} else {
-				return "redirect:/auth/user?error_add=true";
+				return "redirect:/auth/user?error_no_planned=true";
 			}
 		} else if (!word.isEmpty() && !translate.isEmpty()) {
 

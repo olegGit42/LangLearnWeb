@@ -66,6 +66,10 @@
 				<span class="error">${error_empty_field}</span>
 			</c:if>
 		
+			<c:if test="${not empty error_no_planned}">
+				<span class="error">${error_no_planned}</span>
+			</c:if>
+
 			<c:if test="${not empty success_add_word}">
 				<span class="success">${success_add_word}</span>
 			</c:if>
@@ -76,7 +80,7 @@
 
 			<input type="submit" class="btnLogin" value=<spring:message code="Add"/> formaction="user/add_new_word">
 			<form:checkbox name="planned" path="isPlanned" class="checkPlanned" />
-			<label for="planned"><spring:message code="Planned"/></label>
+			<a href="http://localhost:8080/ColibriWeb/auth/user?refresh=planned"><label for="planned"><spring:message code="Planned"/></label></a>
 			<p><spring:message code="Number of all words"/> ${wordStat.allWordsCount}</p>
 
 		</footer>

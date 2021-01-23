@@ -291,7 +291,7 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 			}
 
 			for (Word word : plannedWordsList) {
-				word.setNewBoxAndUpdDate(0);
+				word.startRepeatPlanned();
 				this.update(word, userId);
 			}
 
