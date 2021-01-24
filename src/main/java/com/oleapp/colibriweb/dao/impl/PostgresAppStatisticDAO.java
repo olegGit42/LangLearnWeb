@@ -66,10 +66,10 @@ public class PostgresAppStatisticDAO extends ADataSource implements IAppStatisti
 
 	@Transactional(propagation = Propagation.REQUIRED)
 	@Override
-	public int getAllWordsCount(int userId) {
+	public int getAllWordsCount(int userId, boolean onlyPlanned) {
 		try {
-			String sql = "select count(w.*) as count from " + WORD_TABLE + " w where w." + wt_user_id + " = " + userId + " and w."
-					+ wt_date_repeat + " <> " + Word.PLANNED_TIME;
+			String sql = "select count(w.*) as count from " + WORD_TABLE + " w where w." + wt_user_id + " = " + userId
+					+ (onlyPlanned ? (" and w." + wt_date_repeat + " = " + Word.PLANNED_TIME) : "");
 			return jdbcTemplate.query(sql, (resultSet, rowNum) -> resultSet.getInt("count")).get(0);
 		} catch (Exception e) {
 			e.printStackTrace();

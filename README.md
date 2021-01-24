@@ -7,6 +7,15 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.4
+Added confirmation dialog when press Planned or Add  
+Improved all words count displaying  
+Improved command error/success messages  
+Refactoring:
+ - success/error messages
+ - app url
+ - timezoneOffset
+
 ## v1.0.1.3
 Improved "start repeat planned words" logic  
 Added link for "add planned 10" insert  

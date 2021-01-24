@@ -15,7 +15,7 @@
 
 <body>
 
-	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
+	<a href="${appurl}"><spring:message code="Home page"/></a>
 
 	<form method="POST" action="registration" class="box login">
 

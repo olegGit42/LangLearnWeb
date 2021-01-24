@@ -15,7 +15,7 @@
 		var dateVar = new Date();
 		var timezone = dateVar.getTimezoneOffset();
 		var xmlHttp = new XMLHttpRequest();
-		xmlHttp.open( "GET", "http://localhost:8080/ColibriWeb/userTimeZone?timezoneOffset=" + timezone, false ); // false for synchronous request
+		xmlHttp.open( "GET", "${appurl}userTimeZone?timezoneOffset=" + timezone, true ); // false for synchronous request
 		xmlHttp.send( null );
 		
 		function clearContents(id) {
@@ -25,13 +25,13 @@
 
     
 
-	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
+	<a href="${appurl}"><spring:message code="Home page"/></a>
 	|
-	<a href="http://localhost:8080/ColibriWeb/auth/forgettable"><spring:message code="Forgettable"/></a>
+	<a href="${appurl}auth/forgettable"><spring:message code="Forgettable"/></a>
 	|
-	<a href="http://localhost:8080/ColibriWeb/auth/dictionary"><spring:message code="Dictionary"/></a>
+	<a href="${appurl}auth/dictionary"><spring:message code="Dictionary"/></a>
 	||
-	<a href="http://localhost:8080/ColibriWeb/auth/user?refresh=true"><spring:message code="Refresh"/></a>
+	<a href="${appurl}auth/user?refresh=true"><spring:message code="Refresh"/></a>
 
 	<span style="float: right">
 		<a href="logout"><spring:message code="Logout"/></a>
@@ -58,29 +58,21 @@
 				<form:input id="translateNew" type='text' name='translateNew' path='translate' />
 			</div>
 					
-			<c:if test="${not empty error_add_word}">
-				<span class="error">${error_add_word}</span>
-			</c:if>
-		
-			<c:if test="${not empty error_empty_field}">
-				<span class="error">${error_empty_field}</span>
-			</c:if>
-		
-			<c:if test="${not empty error_no_planned}">
-				<span class="error">${error_no_planned}</span>
+			<c:if test="${not empty error}">
+				<span class="error">${error}</span>
 			</c:if>
 
-			<c:if test="${not empty success_add_word}">
-				<span class="success">${success_add_word}</span>
+			<c:if test="${not empty success}">
+				<span class="success">${success}</span>
 			</c:if>
 
 		</fieldset>
 
 		<footer>
 
-			<input type="submit" class="btnLogin" value=<spring:message code="Add"/> formaction="user/add_new_word">
+			<input type="submit" onclick="return confirm('<spring:message code="Add"/>')" class="btnLogin" value=<spring:message code="Add"/> formaction="user/add_new_word">
 			<form:checkbox name="planned" path="isPlanned" class="checkPlanned" />
-			<a href="http://localhost:8080/ColibriWeb/auth/user?refresh=planned"><label for="planned"><spring:message code="Planned"/></label></a>
+			<a href="${appurl}auth/user?refresh=planned" onclick="return confirm('<spring:message code="Planned"/>')"><label for="planned"><spring:message code="Planned"/></label></a>
 			<p><spring:message code="Number of all words"/> ${wordStat.allWordsCount}</p>
 
 		</footer>

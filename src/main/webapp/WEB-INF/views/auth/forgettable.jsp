@@ -11,17 +11,17 @@
 </head>
 <body>
 
-	<a href="http://localhost:8080/ColibriWeb/"><spring:message code="Home page"/></a>
+	<a href="${appurl}"><spring:message code="Home page"/></a>
 	|
-	<a href="http://localhost:8080/ColibriWeb/auth/user"><spring:message code="AddRepeat"/></a>
+	<a href="${appurl}auth/user"><spring:message code="AddRepeat"/></a>
 	|
-	<a href="http://localhost:8080/ColibriWeb/auth/dictionary"><spring:message code="Dictionary"/></a>
+	<a href="${appurl}auth/dictionary"><spring:message code="Dictionary"/></a>
 
 	<span style="float: right">
 		<a href="logout"><spring:message code="Logout"/></a>
 	</span>
 
-<h2><a href="http://localhost:8080/ColibriWeb/auth/forgettable${all}"><spring:message code="Forgettable"/></a></h2>
+<h2><a href="${appurl}auth/forgettable${all}"><spring:message code="Forgettable"/></a></h2>
 ${wordList}
 
 </body>

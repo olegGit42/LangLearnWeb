@@ -29,6 +29,7 @@ import com.oleapp.colibriweb.dao.interfaces.IAppStatisticDAO;
 import com.oleapp.colibriweb.dao.interfaces.IUserDAO;
 import com.oleapp.colibriweb.model.User;
 import com.oleapp.colibriweb.model.Word;
+import com.oleapp.colibriweb.service.AppSettings;
 
 import lombok.Data;
 
@@ -37,18 +38,31 @@ import lombok.Data;
 @Data
 public class SecurityController {
 
+	public static final String SUCCESS_ADD_WORD = "s1";
+	public static final String SUCCESS_COMMAND = "s2";
+
+	public static final String ERROR_ADD_WORD = "e1";
+	public static final String ERROR_EMPTY_FIELD = "e2";
+	public static final String ERROR_NO_PLANNED = "e3";
+	public static final String ERROR_COMMAND = "e4";
+
 	@Data
 	public static class WordStatistics {
-		private int allWordsCount;
+		private String allWordsCount;
 		private int todayRepeatCount;
 		private String repeatDateTime;
 		private String box;
 
-		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset, Word repWord) {
+		public void refresh(int userId, Locale locale, MessageSource localeSource, long timezoneOffset, Word repWord,
+				String defaultUTC) {
 
 			IAppStatisticDAO appStatistic = PostgresAppStatisticDAO.getInstance();
 
-			allWordsCount = appStatistic.getAllWordsCount(userId);
+			int allWCOnlyPlanned = appStatistic.getAllWordsCount(userId, true);
+			int allWC = appStatistic.getAllWordsCount(userId, false);
+
+			allWordsCount = allWC
+					+ (allWCOnlyPlanned > 0 ? (" (" + (allWC - allWCOnlyPlanned) + " / " + allWCOnlyPlanned + ")") : "");
 
 			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId);
 
@@ -68,7 +82,7 @@ public class SecurityController {
 					msg = " " + localeSource.getMessage("was supposed to be", null, locale) + ": ";
 				}
 
-				repeatDateTime = msg + (repWord.getBox() < 2 ? repWord.obtainRepTimeString(timezoneOffset)
+				repeatDateTime = msg + (repWord.getBox() < 2 ? repWord.obtainRepTimeString(timezoneOffset) + defaultUTC
 						: repWord.obtainRepDateString(timezoneOffset));
 				box = repWord.getBox() + " | "
 						+ localeSource.getMessage(WordController.repeatPeriodArray[repWord.getBox()], null, locale);
@@ -94,10 +108,8 @@ public class SecurityController {
 	}
 
 	@RequestMapping(value = "/auth/user", method = RequestMethod.GET)
-	public ModelAndView userPage(@RequestParam(value = "error_add", required = false) String error_add,
-			@RequestParam(value = "error_empty_field", required = false) String error_empty_field,
-			@RequestParam(value = "error_no_planned", required = false) String error_no_planned,
-			@RequestParam(value = "success_add_word", required = false) String success_add_word,
+	public ModelAndView userPage(@RequestParam(value = "error", required = false) String error,
+			@RequestParam(value = "success", required = false) String success,
 			@RequestParam(value = "show_word", required = false) String show_word, @ModelAttribute("newWord") Word newWord,
 			@ModelAttribute("wordStat") WordStatistics wordStat, @ModelAttribute StringBuilder bufferWord,
 			@RequestParam(value = "refresh", required = false) String refresh, Principal user, Locale locale,
@@ -105,33 +117,49 @@ public class SecurityController {
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
+		model.addObject("appurl", AppSettings.APP_URL);
 
-		if (error_add != null) {
-			model.addObject("error_add_word", localeSource.getMessage("error_add_word", null, locale));
+		if (error != null) {
+			switch (error) {
+			case ERROR_ADD_WORD:
+				model.addObject("error", localeSource.getMessage("error_add_word", null, locale));
+				break;
+			case ERROR_EMPTY_FIELD:
+				model.addObject("error", localeSource.getMessage("error_empty_field", null, locale));
+				break;
+			case ERROR_NO_PLANNED:
+				model.addObject("error", localeSource.getMessage("error_no_planned", null, locale));
+				break;
+			case ERROR_COMMAND:
+				model.addObject("error", localeSource.getMessage("ERROR_COMMAND", null, locale));
+				break;
+			default:
+				break;
+			}
 		}
 
-		if (error_empty_field != null) {
-			model.addObject("error_empty_field", localeSource.getMessage("error_empty_field", null, locale));
-		}
-
-		if (success_add_word != null) {
-			model.addObject("success_add_word", localeSource.getMessage("success_add_word", null, locale));
-		}
-
-		if (error_no_planned != null) {
-			model.addObject("error_no_planned", localeSource.getMessage("error_no_planned", null, locale));
+		if (success != null) {
+			switch (success) {
+			case SUCCESS_ADD_WORD:
+				model.addObject("success", localeSource.getMessage("success_add_word", null, locale));
+				break;
+			case SUCCESS_COMMAND:
+				model.addObject("success", localeSource.getMessage("SUCCESS_COMMAND", null, locale));
+				break;
+			default:
+				break;
+			}
 		}
 
 		int userId = obtainUserId(user.getName());
 
-		/*
-		 * Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
-		 * 
-		 * if (timezoneOffset == null) { timezoneOffset = 0L; }
-		 */
+		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
+		String defaultUTC = "";
 
-		// dev stub
-		Long timezoneOffset = 0L;
+		if (timezoneOffset == null) {
+			timezoneOffset = AppSettings.TIMEZONE_OFFSET;
+			defaultUTC = AppSettings.DEFAULT_UTC;
+		}
 
 		Word repWord;
 
@@ -157,7 +185,7 @@ public class SecurityController {
 			repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, true, timezoneOffset, waitingWordList);
 		}
 
-		wordStat.refresh(userId, locale, localeSource, timezoneOffset, repWord);
+		wordStat.refresh(userId, locale, localeSource, timezoneOffset, repWord, defaultUTC);
 
 		repWord = repWord == null ? Word.getNewInstance() : repWord;
 
@@ -175,7 +203,7 @@ public class SecurityController {
 			newWord.setTranslate("");
 			newWord.setIsPlanned(false);
 			if (refresh.equals("planned")) {
-				newWord.setWord("add planned 10");
+				newWord.setWord(WordController.Command.ADD_PLANNED.command + " 10");
 			}
 		}
 
@@ -193,9 +221,10 @@ public class SecurityController {
 
 		if (translate.isEmpty() && WordController.commandResolver(word) == WordController.Command.ADD_PLANNED) {
 			if (WordController.doCommand(authUser.getId(), null, WordController.Command.ADD_PLANNED, word)) {
-				return "redirect:/auth/user?success_add_word=true";
+				newWord.setWord("+" + word);
+				return "redirect:/auth/user?success=" + SUCCESS_ADD_WORD;
 			} else {
-				return "redirect:/auth/user?error_no_planned=true";
+				return "redirect:/auth/user?error=" + ERROR_NO_PLANNED;
 			}
 		} else if (!word.isEmpty() && !translate.isEmpty()) {
 
@@ -214,8 +243,9 @@ public class SecurityController {
 				newWord.setTranslate("");
 				newWord.setIsPlanned(false);
 
-				return "redirect:/auth/user?success_add_word=true";
+				return "redirect:/auth/user?success=" + SUCCESS_ADD_WORD;
 			} else if (wordForCheck != null) {
+				String oldTranslate = wordForCheck.getTranslate();
 				if (WordController.doCommand(authUser.getId(), wordForCheck, WordController.commandResolver(translate),
 						translate)) {
 
@@ -229,38 +259,38 @@ public class SecurityController {
 						newWord.setTranslate("ADDED " + translate);
 						break;
 					case REPLACE:
-						newWord.setTranslate("REPLACED " + translate);
+						newWord.setTranslate("REPLACED " + translate + " -> " + oldTranslate);
 						break;
 					case FORGOT:
-						newWord.setTranslate("FORGOTTEN");
+						newWord.setTranslate("FORGOTTEN " + WordController.Command.FORGOT.command);
 						break;
 					case DELETE:
-						newWord.setTranslate("DELETED " + wordForCheck.getTranslate());
+						newWord.setTranslate("DELETED " + WordController.Command.DELETE.command + " " + oldTranslate);
 						break;
 					case SHOW:
 						bufferWord.setLength(0);
 						bufferWord.append(word);
 						return "redirect:/auth/user?show_word=true";
 					case BACK:
-						newWord.setTranslate("BOX - 1");
+						newWord.setTranslate("BOX - 1 " + WordController.Command.BACK.command);
 						break;
 					case NEXT:
-						newWord.setTranslate("BOX + 1");
+						newWord.setTranslate("BOX + 1 " + WordController.Command.NEXT.command);
 						break;
 					default:
-						return "redirect:/auth/user?error_add=true";
+						return "redirect:/auth/user?error=" + ERROR_COMMAND;
 					}
 
-					return "redirect:/auth/user?success_add_word=true";
+					return "redirect:/auth/user?success=" + SUCCESS_COMMAND;
 				} else {
-					return "redirect:/auth/user?error_add=true";
+					return "redirect:/auth/user?error=" + ERROR_COMMAND;
 				}
 			} else {
-				return "redirect:/auth/user?error_add=true";
+				return "redirect:/auth/user?error=" + ERROR_ADD_WORD;
 			}
 
 		} else {
-			return "redirect:/auth/user?error_empty_field=true";
+			return "redirect:/auth/user?error=" + ERROR_EMPTY_FIELD;
 		}
 	}
 
@@ -284,8 +314,8 @@ public class SecurityController {
 	}
 
 	public void saveRepWord(Word repWord, Principal user, boolean forgot) {
-		boolean isFillWord = !(repWord.getWord() == null || repWord.getWord().equals(""));
-		boolean isFillTranslate = !(repWord.getTranslate() == null || repWord.getTranslate().equals(""));
+		boolean isFillWord = !(repWord.getWord() == null || repWord.getWord().isEmpty());
+		boolean isFillTranslate = !(repWord.getTranslate() == null || repWord.getTranslate().isEmpty());
 		if (isFillWord && isFillTranslate) {
 
 			IUserDAO userDAO = PostgresUserDAO.getInstance();
@@ -340,8 +370,9 @@ public class SecurityController {
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
-		model.setViewName("/auth/forgettable");
 		model.addObject("wordList", wordSB);
+		model.addObject("appurl", AppSettings.APP_URL);
+		model.setViewName("/auth/forgettable");
 
 		if (isAll) {
 			model.addObject("all", "");
@@ -356,14 +387,11 @@ public class SecurityController {
 	public ModelAndView dictionaryPage(@RequestParam(value = "sort", required = false) final String sort, Principal user,
 			Locale locale, HttpSession session) {
 
-		/*
-		 * Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
-		 * 
-		 * if (timezoneOffset == null) { timezoneOffset = 0L; }
-		 */
+		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
 
-		// dev stub
-		Long timezoneOffset = 0L;
+		if (timezoneOffset == null) {
+			timezoneOffset = AppSettings.TIMEZONE_OFFSET;
+		}
 
 		final Long timezoneOffsetFinal = timezoneOffset;
 
@@ -384,8 +412,9 @@ public class SecurityController {
 
 		ModelAndView model = new ModelAndView();
 		model.addObject("username", user.getName());
-		model.setViewName("/auth/dictionary");
 		model.addObject("wordList", wordSB);
+		model.addObject("appurl", AppSettings.APP_URL);
+		model.setViewName("/auth/dictionary");
 
 		if (sort != null && sort.equals("date")) {
 			model.addObject("sort", "");
@@ -404,6 +433,7 @@ public class SecurityController {
 			model.addObject("error", localeSource.getMessage("invalid_name_pas", null, locale));
 		}
 
+		model.addObject("appurl", AppSettings.APP_URL);
 		model.setViewName("login");
 
 		return model;
@@ -435,9 +465,9 @@ public class SecurityController {
 		return new ResponseEntity<String>(HttpStatus.OK); // 200
 	}
 
-	public static long getGMTSignedZone(String timezoneOffset) {
+	public static Long getGMTSignedZone(String timezoneOffset) {
 		timezoneOffset = timezoneOffset == null ? "" : timezoneOffset.trim();
-		if (!timezoneOffset.equals("")) {
+		if (!timezoneOffset.isEmpty()) {
 			Integer zMinutes = Integer.valueOf(timezoneOffset);
 			if (zMinutes < 0) {
 				zMinutes = zMinutes * (-1);
@@ -454,7 +484,7 @@ public class SecurityController {
 
 			return hours * WordController.hour_ms + minutes * WordController.minute_ms;
 		}
-		return 0;
+		return null;
 	}
 
 }

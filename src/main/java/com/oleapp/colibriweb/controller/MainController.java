@@ -12,8 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.oleapp.colibriweb.dao.impl.PostgresAppStatisticDAO;
+import com.oleapp.colibriweb.service.AppSettings;
 
 import lombok.Data;
 
@@ -32,8 +34,11 @@ public class MainController {
 	}
 
 	@RequestMapping(value = "/registration", method = RequestMethod.GET)
-	public String registrationPage() {
-		return "registration";
+	public ModelAndView registrationPage() {
+		ModelAndView model = new ModelAndView();
+		model.addObject("appurl", AppSettings.APP_URL);
+		model.setViewName("registration");
+		return model;
 	}
 
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
