@@ -64,7 +64,7 @@ public class SecurityController {
 			allWordsCount = allWC
 					+ (allWCOnlyPlanned > 0 ? (" (" + (allWC - allWCOnlyPlanned) + " / " + allWCOnlyPlanned + ")") : "");
 
-			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId);
+			todayRepeatCount = appStatistic.getTodayWordsRepeatCount(userId, timezoneOffset);
 
 			if (repWord == null) {
 				repWord = PostgresWordDAO.getInstance().getNearestRepeatWord(userId, false, timezoneOffset, null);

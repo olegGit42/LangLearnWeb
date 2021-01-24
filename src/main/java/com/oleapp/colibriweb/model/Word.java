@@ -96,10 +96,6 @@ public class Word implements Serializable {
 		return WordController.dateFormat.format(new Date(obtainRepTime(timezoneOffset)));
 	}
 
-	public boolean isEmpty() {
-		return ((word == null || word.trim().isEmpty()) && (translate == null || translate.trim().isEmpty()));
-	}
-
 	public boolean getIsPlanned() {
 		return isPlanned;
 	}

@@ -6,7 +6,7 @@ public interface IAppStatisticDAO {
 
 	public int getDownloadCount();
 
-	public int getTodayWordsRepeatCount(int userId);
+	public int getTodayWordsRepeatCount(int userId, long timezoneOffset);
 
 	public int getAllWordsCount(int userId, boolean withPlanned);
 

@@ -46,12 +46,13 @@ public class PostgresAppStatisticDAO extends ADataSource implements IAppStatisti
 
 	@Transactional(propagation = Propagation.REQUIRED)
 	@Override
-	public int getTodayWordsRepeatCount(int userId) {
+	public int getTodayWordsRepeatCount(int userId, long timezoneOffset) {
 		try {
 			Date date = new Date();
-			date.setTime(System.currentTimeMillis() + WordController.day_ms);
+			date.setTime(System.currentTimeMillis() + WordController.day_ms + timezoneOffset);
 			date = WordController.dateFormat.parse(WordController.dateFormat.format(date));
-			long tomorrowDate = date.getTime();
+
+			long tomorrowDate = date.getTime() - timezoneOffset;
 
 			String sql = "select count(w.*) as count from " + WORD_TABLE + " w, " + TIME_DELTA + " d where w." + wt_box + " = d."
 					+ td_box + " and  w." + wt_user_id + " = " + userId + " and w." + wt_date_repeat + " + d." + td_time_delta
