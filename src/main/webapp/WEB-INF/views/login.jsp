@@ -15,6 +15,14 @@
 
 <body>
 
+	<script type='text/javascript'>
+		var dateVar = new Date();
+		var timezone = dateVar.getTimezoneOffset();
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( "GET", "${appurl}userTimeZone?timezoneOffset=" + timezone, true ); // false for synchronous request
+		xmlHttp.send( null );
+	</script>
+
 	<a href="${appurl}"><spring:message code="Home page"/></a>
 
 	<form method="POST" action="login" class="box login">

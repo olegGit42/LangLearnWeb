@@ -26,6 +26,8 @@ public interface IWordDAO {
 
 	public List<Word> getUserWords(int userId);
 
+	public List<Word> searchUserWordsLike(String word, int userId);
+
 	public List<Word> getForgettableWords(int userId, boolean isAll);
 
 	public int getMaxWordId(int userId);
@@ -35,5 +37,9 @@ public interface IWordDAO {
 	public int startRepeatPlannedWords(int userId, int count);
 
 	public List<Word> getPlannedWords(int userId, int count);
+
+	public int rollbackStartedPlannedWords(int userId, int count);
+
+	public List<Word> getStartedPlannedWords(int userId, int count);
 
 }

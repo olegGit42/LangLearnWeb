@@ -18,7 +18,7 @@
 	<a href="${appurl}auth/dictionary"><spring:message code="Dictionary"/></a>
 
 	<span style="float: right">
-		<a href="logout"><spring:message code="Logout"/></a>
+		<a href="logout" onclick="return confirm('<spring:message code="Logout"/>')"><spring:message code="Logout"/></a>
 	</span>
 
 <h2><a href="${appurl}auth/forgettable${all}"><spring:message code="Forgettable"/></a></h2>

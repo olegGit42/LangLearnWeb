@@ -7,6 +7,13 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.5
+Setting timezoneOffset moved to Login page and fixed  
+BECOME_PLANNED("[pln]"), ROLLBACK_PLANNED("rollback planned") commands added  
+Words searching in Dictionary page  
+Commands sidebar  
+Logout confirmation
+
 ## v1.0.1.4
 Added confirmation dialog when press Planned or Add  
 Improved all words count displaying  

@@ -12,30 +12,30 @@
 <body>
 
 	<script type='text/javascript'>
-		var dateVar = new Date();
-		var timezone = dateVar.getTimezoneOffset();
-		var xmlHttp = new XMLHttpRequest();
-		xmlHttp.open( "GET", "${appurl}userTimeZone?timezoneOffset=" + timezone, true ); // false for synchronous request
-		xmlHttp.send( null );
-		
 		function clearContents(id) {
 		    document.getElementById(id).value = '';
 		}
 	</script>
 
-    
-
-	<a href="${appurl}"><spring:message code="Home page"/></a>
-	|
-	<a href="${appurl}auth/forgettable"><spring:message code="Forgettable"/></a>
-	|
-	<a href="${appurl}auth/dictionary"><spring:message code="Dictionary"/></a>
-	||
-	<a href="${appurl}auth/user?refresh=true"><spring:message code="Refresh"/></a>
-
 	<span style="float: right">
-		<a href="logout"><spring:message code="Logout"/></a>
+		<a href="logout" onclick="return confirm('<spring:message code="Logout"/>')"><spring:message code="Logout"/></a>
 	</span>
+
+	<div id="main">
+		<a href="${appurl}"><spring:message code="Home page"/></a>
+		|
+		<a href="${appurl}auth/forgettable"><spring:message code="Forgettable"/></a>
+		|
+		<a href="${appurl}auth/dictionary"><spring:message code="Dictionary"/></a>
+		||
+		<a href="${appurl}auth/user?refresh=true"><spring:message code="Refresh"/></a>
+
+		<p><button id="openbtn" class="openbtn" onclick="openNav()">☰ <spring:message code="Commands"/></button></p>
+	</div>
+
+	<div id="mySidebar" class="sidebar">
+		${commands}
+	</div>
 
 	<form:form method="POST" modelAttribute="newWord" action="user" class="box login">
 
@@ -123,6 +123,20 @@
 						this.value = '';
 					}
 				});
+
+		function openNav() {
+			document.getElementById("mySidebar").style.width = "250px";
+			document.getElementById("main").style.marginLeft = "250px";
+			document.getElementById("openbtn").removeEventListener('click', openNav);
+			document.getElementById("openbtn").addEventListener('click', closeNav);
+		}
+
+		function closeNav() {
+			document.getElementById("mySidebar").style.width = "0";
+			document.getElementById("main").style.marginLeft = "0";
+			document.getElementById("openbtn").removeEventListener('click', closeNav);
+			document.getElementById("openbtn").addEventListener('click', openNav);
+		}
 	</script>
 
 </body>

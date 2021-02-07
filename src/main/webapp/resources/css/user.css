@@ -430,6 +430,78 @@ body {
 	color: #333;
 }
 
+.box.search {
+	height: 55px;
+	width: 500px;
+	margin: 0px;
+/* 	position: absolute; */
+/* 	left: 50%; */
+/* 	top: 50%; */
+/* 	margin: -130px 0 0 -166px; */
+/*     margin:auto; */
+}
+
+.box.search footer {
+	background: #eff4f6;
+	border-top: 1px solid #fff;
+	padding: 2px 15px;
+	overflow: hidden;
+	height: 100px;
+}
+
+.box.search input[type=text],.box input[type=password],.txtField,.cjComboBox {
+	border: 6px solid #F7F9FA;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	-moz-box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.06) inset, 0 0 1px #95a2a7 inset;
+	-webkit-box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.06) inset, 0 0 1px #95a2a7 inset;
+	box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.06) inset, 0 0 1px #95a2a7 inset;
+	margin: 3px 0 4px;
+	padding: 8px 6px;
+	width: 350px;
+/* 	display: block; */
+}
+
+.box.search input[type=text]:focus,.box input[type=password]:focus,.txtField:focus,.cjComboBox:focus
+	{
+	border: 6px solid #f0f7fc;
+	-moz-box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.04) inset, 0 0 1px #0d6db6
+		inset;
+	-webkit-box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.04) inset, 0 0 1px
+		#0d6db6 inset;
+	box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.04) inset, 0 0 1px #0d6db6 inset;
+	color: #333;
+}
+
+.btnSearch {
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 15px;
+	background: #a1d8f0;
+	background: -moz-linear-gradient(top, #badff3, #7acbed);
+	background: -webkit-gradient(linear, left top, left bottom, from(#badff3),
+		to(#7acbed));
+	-ms-filter:
+		"progid:DXImageTransform.Microsoft.gradient(startColorStr='#badff3', EndColorStr='#7acbed')";
+	border: 1px solid #7db0cc !important;
+	cursor: pointer;
+	padding: 11px 16px;
+	font: bold 11px/14px Verdana, Tahomma, Geneva;
+	text-shadow: rgba(0, 0, 0, 0.2) 0 1px 0px;
+	color: #fff;
+	-moz-box-shadow: inset rgba(255, 255, 255, 0.6) 0 1px 1px,
+		rgba(0, 0, 0, 0.1) 0 1px 1px;
+	-webkit-box-shadow: inset rgba(255, 255, 255, 0.6) 0 1px 1px,
+		rgba(0, 0, 0, 0.1) 0 1px 1px;
+	box-shadow: inset rgba(255, 255, 255, 0.6) 0 1px 1px, rgba(0, 0, 0, 0.1)
+		0 1px 1px;
+	margin-left: 12px;
+	margin-top: 10px;
+	float: right;
+	padding: 7px 21px;
+}
+
 .cjComboBox {
 	width: 294px;
 }
@@ -603,4 +675,63 @@ footer#main {
 	text-align: center;
 	font: normal 11px/16px Arial, Helvetica, sans-serif;
 	width: 100%;
+}
+
+.sidebar {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.1s;
+  padding-top: 60px;
+  background: #fefefe;
+}
+
+.sidebar a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #aeaeae;
+  display: block;
+  transition: 0.1s;
+}
+
+.sidebar a:hover {
+  color: #515151;
+}
+
+.sidebar .closebtn {
+  position: absolute;
+  top: 0;
+  right: 0px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+#main {
+  transition: margin-left .1s;
+}
+
+.openbtn {
+	border-radius: 10px;
+	background: #eff4f6;
+	border: 1px solid #7db0cc !important;
+	font-size: 14px;
+	cursor: pointer;
+	color: #606060;
+	-moz-box-shadow: inset rgba(255, 255, 255, 0.6) 0 1px 1px,
+		rgba(0, 0, 0, 0.1) 0 1px 1px;
+	-webkit-box-shadow: inset rgba(255, 255, 255, 0.6) 0 1px 1px,
+		rgba(0, 0, 0, 0.1) 0 1px 1px;
+	box-shadow: inset rgba(255, 255, 255, 0.6) 0 1px 1px, rgba(0, 0, 0, 0.1)
+		0 1px 1px;
+	padding: 7px 15px;
+}
+
+.openbtn:hover,.btnLogin:focus,.btnLogin:active {
+	background: #e4ecef;
 }

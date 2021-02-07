@@ -26,7 +26,7 @@ public class WordController {
 	public static enum Command {
 
 		ADD("[add]"), REPLACE("[rep]"), DELETE("[del]"), FORGOT("[fgt]"), SHOW("[shw]"), NEXT("[nxt]"), BACK("[bck]"),
-		ADD_PLANNED("add planned");
+		BECOME_PLANNED("[pln]"), ADD_PLANNED("add planned"), ROLLBACK_PLANNED("rollback planned");
 
 		public final String command;
 
@@ -83,33 +83,27 @@ public class WordController {
 					return false;
 				}
 				word.setTranslate(word.getTranslate() + ", " + translate);
-				PostgresWordDAO.getInstance().update(word, userId);
-				return true;
+				return PostgresWordDAO.getInstance().update(word, userId);
 			case REPLACE:
 				translate = translate.replace(Command.REPLACE.command, "").trim();
 				if (translate.isEmpty()) {
 					return false;
 				}
 				word.setTranslate(translate);
-				PostgresWordDAO.getInstance().update(word, userId);
-				return true;
+				return PostgresWordDAO.getInstance().update(word, userId);
 			case FORGOT:
 				word.setNewBoxAndUpdDate(0);
-				PostgresWordDAO.getInstance().update(word, userId);
-				return true;
+				return PostgresWordDAO.getInstance().update(word, userId);
 			case DELETE:
-				PostgresWordDAO.getInstance().delete(word.getId(), userId);
-				return true;
+				return PostgresWordDAO.getInstance().delete(word.getId(), userId);
 			case SHOW:
 				return true;
 			case BACK:
 				word.setNewBoxAndUpdDate(word.getBox() - 1);
-				PostgresWordDAO.getInstance().update(word, userId);
-				return true;
+				return PostgresWordDAO.getInstance().update(word, userId);
 			case NEXT:
 				word.setNewBoxAndUpdDate(word.getBox() + 1);
-				PostgresWordDAO.getInstance().update(word, userId);
-				return true;
+				return PostgresWordDAO.getInstance().update(word, userId);
 			case ADD_PLANNED:
 				try {
 					translate = translate.replace(Command.ADD_PLANNED.command, "").trim();
@@ -119,10 +113,21 @@ public class WordController {
 				} catch (Exception e) {
 					return false;
 				}
+			case ROLLBACK_PLANNED:
+				try {
+					translate = translate.replace(Command.ROLLBACK_PLANNED.command, "").trim();
+					int count = Math.abs(Integer.parseInt(translate));
+					int result = PostgresWordDAO.getInstance().rollbackStartedPlannedWords(userId, count);
+					return (result > 0);
+				} catch (Exception e) {
+					return false;
+				}
+			case BECOME_PLANNED:
+				word.becomePlanned();
+				return PostgresWordDAO.getInstance().update(word, userId);
 			default:
 				return false;
 			}
-
 		} catch (Exception e) {
 			return false;
 		}
@@ -146,6 +151,27 @@ public class WordController {
 			return null;
 		}
 
+	}
+
+	public static void prepareForCommand(Word word, Command command) {
+		word.setWord("");
+		word.setTranslate("");
+		switch (command) {
+		case ADD:
+		case REPLACE:
+		case FORGOT:
+		case DELETE:
+		case SHOW:
+		case BACK:
+		case NEXT:
+		case BECOME_PLANNED:
+			word.setTranslate(command.command);
+			break;
+		case ADD_PLANNED:
+		case ROLLBACK_PLANNED:
+			word.setWord(command.command + " 10");
+			break;
+		}
 	}
 
 }

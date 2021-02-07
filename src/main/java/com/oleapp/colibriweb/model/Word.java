@@ -72,6 +72,12 @@ public class Word implements Serializable {
 		this.regTime = System.currentTimeMillis() - WordController.hour_ms;
 	}
 
+	public void becomePlanned() {
+		this.box = 0;
+		this.repeateIndicator = 0;
+		this.regTime = PLANNED_TIME;
+	}
+
 	public long obtainRepTime() {
 		return obtainRepTime(0);
 	}

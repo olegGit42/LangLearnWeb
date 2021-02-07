@@ -34,7 +34,7 @@ import com.oleapp.colibriweb.service.AppSettings;
 import lombok.Data;
 
 @Controller
-@SessionAttributes({ "newWord", "bufferWord" })
+@SessionAttributes({ "newWord", "bufferWord", "searchWord" })
 @Data
 public class SecurityController {
 
@@ -98,6 +98,11 @@ public class SecurityController {
 		return Word.getNewInstance();
 	}
 
+	@ModelAttribute("searchWord")
+	public Word createSearchWord() {
+		return Word.getNewInstance();
+	}
+
 	@ModelAttribute("bufferWord")
 	public StringBuilder createBufferWord() {
 		return new StringBuilder();
@@ -110,7 +115,8 @@ public class SecurityController {
 	@RequestMapping(value = "/auth/user", method = RequestMethod.GET)
 	public ModelAndView userPage(@RequestParam(value = "error", required = false) String error,
 			@RequestParam(value = "success", required = false) String success,
-			@RequestParam(value = "show_word", required = false) String show_word, @ModelAttribute("newWord") Word newWord,
+			@RequestParam(value = "show_word", required = false) String show_word,
+			@RequestParam(value = "command", required = false) String command, @ModelAttribute("newWord") Word newWord,
 			@ModelAttribute("wordStat") WordStatistics wordStat, @ModelAttribute StringBuilder bufferWord,
 			@RequestParam(value = "refresh", required = false) String refresh, Principal user, Locale locale,
 			HttpSession session) {
@@ -193,6 +199,14 @@ public class SecurityController {
 			repWord.setTranslate(null);
 		}
 
+		String commands = "";
+
+		for (WordController.Command cmd : WordController.Command.values()) {
+			commands += "<a href=\"user?command=" + cmd.toString() + "\">"
+					+ localeSource.getMessage("command." + cmd.toString(), null, locale) + "</a>\n";
+		}
+
+		model.addObject("commands", commands);
 		model.addObject("repWord", repWord);
 		model.setViewName("/auth/user");
 
@@ -204,6 +218,13 @@ public class SecurityController {
 			newWord.setIsPlanned(false);
 			if (refresh.equals("planned")) {
 				newWord.setWord(WordController.Command.ADD_PLANNED.command + " 10");
+			}
+		}
+
+		if (command != null) {
+			try {
+				WordController.prepareForCommand(newWord, WordController.Command.valueOf(command));
+			} catch (Exception e) {
 			}
 		}
 
@@ -219,10 +240,21 @@ public class SecurityController {
 		String word = newWord.getWord().trim();
 		String translate = newWord.getTranslate().trim();
 
-		if (translate.isEmpty() && WordController.commandResolver(word) == WordController.Command.ADD_PLANNED) {
-			if (WordController.doCommand(authUser.getId(), null, WordController.Command.ADD_PLANNED, word)) {
-				newWord.setWord("+" + word);
-				return "redirect:/auth/user?success=" + SUCCESS_ADD_WORD;
+		WordController.Command wordCommand = WordController.commandResolver(word);
+
+		if (translate.isEmpty() && (wordCommand == WordController.Command.ADD_PLANNED
+				|| wordCommand == WordController.Command.ROLLBACK_PLANNED)) {
+			if (WordController.doCommand(authUser.getId(), null, wordCommand, word)) {
+				switch (wordCommand) {
+				case ADD_PLANNED:
+					newWord.setWord("+" + word);
+					return "redirect:/auth/user?success=" + SUCCESS_ADD_WORD;
+				case ROLLBACK_PLANNED:
+					newWord.setWord("+" + word);
+					return "redirect:/auth/user?success=" + SUCCESS_ADD_WORD;
+				default:
+					return "redirect:/auth/user?error=" + ERROR_NO_PLANNED;
+				}
 			} else {
 				return "redirect:/auth/user?error=" + ERROR_NO_PLANNED;
 			}
@@ -272,10 +304,13 @@ public class SecurityController {
 						bufferWord.append(word);
 						return "redirect:/auth/user?show_word=true";
 					case BACK:
-						newWord.setTranslate("BOX - 1 " + WordController.Command.BACK.command);
+						newWord.setTranslate("BOX-1 " + WordController.Command.BACK.command);
 						break;
 					case NEXT:
-						newWord.setTranslate("BOX + 1 " + WordController.Command.NEXT.command);
+						newWord.setTranslate("BOX+1 " + WordController.Command.NEXT.command);
+						break;
+					case BECOME_PLANNED:
+						newWord.setTranslate("+" + WordController.Command.BECOME_PLANNED.command);
 						break;
 					default:
 						return "redirect:/auth/user?error=" + ERROR_COMMAND;
@@ -384,8 +419,9 @@ public class SecurityController {
 	}
 
 	@RequestMapping(value = "/auth/dictionary", method = RequestMethod.GET)
-	public ModelAndView dictionaryPage(@RequestParam(value = "sort", required = false) final String sort, Principal user,
-			Locale locale, HttpSession session) {
+	public ModelAndView dictionaryPage(@RequestParam(value = "sort", required = false) final String sort,
+			@RequestParam(value = "search", required = false) final String search, @ModelAttribute("searchWord") Word searchWord,
+			Principal user, Locale locale, HttpSession session) {
 
 		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
 
@@ -396,18 +432,32 @@ public class SecurityController {
 		final Long timezoneOffsetFinal = timezoneOffset;
 
 		int userId = obtainUserId(user.getName());
-		List<Word> wordList = PostgresWordDAO.getInstance().getUserWords(userId);
 		StringBuilder wordSB = new StringBuilder();
-		wordSB.append("<p>" + localeSource.getMessage("Quantity", null, locale) + " " + (wordList == null ? 0 : wordList.size())
-				+ "</p>");
 
-		if (sort != null && sort.equals("date")) {
-			wordList.stream().sorted(Comparator.comparingLong(w -> w.obtainRepTime(timezoneOffsetFinal)))
-					.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord() + " - "
-							+ w.getTranslate() + "</p>"));
-		} else {
-			wordList.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord() + " - "
-					+ w.getTranslate() + "</p>"));
+		String searchStr = "";
+		try {
+			searchStr = searchWord.getWord().trim();
+		} catch (Exception e) {
+		}
+
+		if ((search != null && search.equals("all")) || !searchStr.isEmpty()) {
+			List<Word> wordList = null;
+			if (search != null && search.equals("all")) {
+				wordList = PostgresWordDAO.getInstance().getUserWords(userId);
+			} else {
+				wordList = PostgresWordDAO.getInstance().searchUserWordsLike(searchStr, userId);
+			}
+			wordSB.append("<p>" + localeSource.getMessage("Quantity", null, locale) + " "
+					+ (wordList == null ? 0 : wordList.size()) + "</p>");
+
+			if (sort != null && sort.equals("date")) {
+				wordList.stream().sorted(Comparator.comparingLong(w -> w.obtainRepTime(timezoneOffsetFinal)))
+						.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord()
+								+ " - " + w.getTranslate() + "</p>"));
+			} else {
+				wordList.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord()
+						+ " - " + w.getTranslate() + "</p>"));
+			}
 		}
 
 		ModelAndView model = new ModelAndView();
@@ -423,6 +473,16 @@ public class SecurityController {
 		}
 
 		return model;
+	}
+
+	@RequestMapping(value = "/auth/dictionary", method = RequestMethod.POST)
+	public String dictionaryPagePOST(@RequestParam(value = "sort", required = false) final String sort,
+			@ModelAttribute("searchWord") Word searchWord) {
+
+		String searchParam = searchWord.getWord().trim().isEmpty() ? "?search=all" : "";
+		String sortParam = (sort != null && sort.equals("date")) ? "" : ((searchParam.isEmpty() ? "?" : "&") + "sort=date");
+
+		return "redirect:/auth/dictionary" + searchParam + sortParam;
 	}
 
 	@RequestMapping(value = { "/login" }, method = RequestMethod.GET)
@@ -482,7 +542,7 @@ public class SecurityController {
 			// minute conversion
 			int minutes = zMinutes - (hours * 60);
 
-			return hours * WordController.hour_ms + minutes * WordController.minute_ms;
+			return (hours * WordController.hour_ms + minutes * WordController.minute_ms) - AppSettings.SERVER_TIMEZONE_OFFSET;
 		}
 		return null;
 	}

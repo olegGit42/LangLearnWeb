@@ -155,17 +155,17 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 
 			final String w = "www", d = "ddd";
 			final String min_today_repeat_box = "(select " + "min(" + w + "." + wt_box + ") from " + WORD_TABLE + " " + w + ", "
-					+ TIME_DELTA + " " + d + " where " + w + "." + wt_box + " = " + d + "." + td_box + " and " + w + "."
-					+ wt_user_id + " = " + userId + " and " + w + "." + wt_date_repeat + " + " + d + "." + td_time_delta + " < "
+					+ TIME_DELTA + " " + d + " where " + w + "." + wt_user_id + " = " + userId + " and " + w + "." + wt_box
+					+ " = " + d + "." + td_box + " and " + w + "." + wt_date_repeat + " + " + d + "." + td_time_delta + " < "
 					+ tomorrowDate + " and " + w + "." + wt_word + " not in (" + waitingWords + "))";
 
 			final String sql = "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", "
 					+ wt_date_repeat + ", " + wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE
 					+ " where " + wt_user_id + " = " + userId + " and " + wt_id + " = " + "(select min(w." + wt_id + ") from "
-					+ WORD_TABLE + " w, " + TIME_DELTA + " d where w." + wt_box + " = d." + td_box + " and w." + wt_user_id
-					+ " = " + userId + " and w." + wt_date_repeat + " + d." + td_time_delta + " = " + "(select min(ww."
+					+ WORD_TABLE + " w, " + TIME_DELTA + " d where w." + wt_user_id + " = " + userId + " and w." + wt_box
+					+ " = d." + td_box + " and w." + wt_date_repeat + " + d." + td_time_delta + " = " + "(select min(ww."
 					+ wt_date_repeat + " + dd." + td_time_delta + ") from " + WORD_TABLE + " ww, " + TIME_DELTA + " dd where ww."
-					+ wt_box + " = dd." + td_box + " and ww." + wt_user_id + " = " + userId + " and (1 = " + tomorrowDate
+					+ wt_user_id + " = " + userId + " and ww." + wt_box + " = dd." + td_box + " and (1 = " + tomorrowDate
 					+ " or (ww." + wt_date_repeat + " + dd." + td_time_delta + " < " + tomorrowDate + " and ww." + wt_box + " = "
 					+ min_today_repeat_box + ")) and ww." + wt_word + " not in (" + waitingWords + ")))";
 
@@ -177,8 +177,8 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 
 	public String getSelectWordString(final String column, final String value, int userId) {
 		return "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat + ", "
-				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + column + " = "
-				+ value + " and " + wt_user_id + " = " + userId + " ORDER BY " + wt_word;
+				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + wt_user_id + " = "
+				+ userId + " and " + column + " = " + value + " ORDER BY " + wt_word;
 	}
 
 	@Override
@@ -233,7 +233,6 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public List<Word> getForgettableWords(int userId, boolean isAll) {
-		// TODO Auto-generated method stub
 		try {
 			return jdbcTemplate.query(getForgettableWordSQL(userId, isAll), wordRowMapper);
 		} catch (Exception e) {
@@ -306,17 +305,69 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 	@Transactional(propagation = Propagation.REQUIRED)
 	public List<Word> getPlannedWords(int userId, int count) {
 		try {
-			return jdbcTemplate.query(getPlannedWordSql(userId, count), wordRowMapper);
+			return jdbcTemplate.query(getPlannedWordSql(userId, count, false), wordRowMapper);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public String getPlannedWordSql(int userId, int count) {
+	public String getPlannedWordSql(int userId, int count, boolean isStarted) {
 		return "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat + ", "
-				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + wt_date_repeat
-				+ " = " + Word.PLANNED_TIME + " and " + wt_user_id + " = " + userId + " ORDER BY " + wt_id + " limit " + count;
+				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + wt_user_id + " = "
+				+ userId + " and " + wt_date_repeat + (isStarted ? " <> " : " = ") + Word.PLANNED_TIME
+				+ (isStarted ? " and " + wt_repeat_count + " = (-1)" : "") + " ORDER BY " + wt_id + (isStarted ? " DESC" : "")
+				+ " limit " + count;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public List<Word> getStartedPlannedWords(int userId, int count) {
+		try {
+			return jdbcTemplate.query(getPlannedWordSql(userId, count, true), wordRowMapper);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public int rollbackStartedPlannedWords(int userId, int count) {
+		try {
+			List<Word> plannedWordsList = getStartedPlannedWords(userId, count);
+
+			if (plannedWordsList == null || plannedWordsList.size() == 0) {
+				return 0;
+			}
+
+			for (Word word : plannedWordsList) {
+				word.becomePlanned();
+				this.update(word, userId);
+			}
+
+			return plannedWordsList.size();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public List<Word> searchUserWordsLike(String word, int userId) {
+		try {
+			return jdbcTemplate.query(searchWordString(word.trim().toUpperCase().replace("'", "''"), userId), wordRowMapper);
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+	}
+
+	public String searchWordString(final String value, int userId) {
+		return "SELECT " + wt_user_id + ", " + wt_id + ", " + wt_word + ", " + wt_translate + ", " + wt_date_repeat + ", "
+				+ wt_date_create + ", " + wt_box + ", " + wt_repeat_count + " FROM " + WORD_TABLE + " where " + wt_user_id + " = "
+				+ userId + " and (UPPER(" + wt_word + ") like '%" + value + "%' or UPPER(" + wt_translate + ") like '%" + value
+				+ "%') ORDER BY " + wt_word;
 	}
 
 }
