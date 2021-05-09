@@ -7,6 +7,12 @@ Desktop part for ColibriWeb
 # [RELEASE](https://wordkeeper.herokuapp.com)
 https://wordkeeper.herokuapp.com
 
+## v1.0.1.6
+Commands button behaviour changed  
+Widen space between commands in sidebar  
+Added repeat date and box info to dictionary and forgettable pages  
+sql fix
+
 ## v1.0.1.5
 Setting timezoneOffset moved to Login page and fixed  
 BECOME_PLANNED("[pln]"), ROLLBACK_PLANNED("rollback planned") commands added  

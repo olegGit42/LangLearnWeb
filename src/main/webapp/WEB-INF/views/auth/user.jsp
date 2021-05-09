@@ -12,6 +12,12 @@
 <body>
 
 	<script type='text/javascript'>
+		var dateVar = new Date();
+		var timezone = dateVar.getTimezoneOffset();
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( "GET", "${appurl}userTimeZone?timezoneOffset=" + timezone, true ); // false for synchronous request
+		xmlHttp.send( null );
+
 		function clearContents(id) {
 		    document.getElementById(id).value = '';
 		}
@@ -22,6 +28,7 @@
 	</span>
 
 	<div id="main">
+		<button id="openbtn" class="openbtn" onclick="openNav()">☰ <spring:message code="Commands"/></button>
 		<a href="${appurl}"><spring:message code="Home page"/></a>
 		|
 		<a href="${appurl}auth/forgettable"><spring:message code="Forgettable"/></a>
@@ -29,11 +36,10 @@
 		<a href="${appurl}auth/dictionary"><spring:message code="Dictionary"/></a>
 		||
 		<a href="${appurl}auth/user?refresh=true"><spring:message code="Refresh"/></a>
-
-		<p><button id="openbtn" class="openbtn" onclick="openNav()">☰ <spring:message code="Commands"/></button></p>
 	</div>
 
 	<div id="mySidebar" class="sidebar">
+		<button id="closebtn" class="closebtn" onclick="closeNav()">☰ <spring:message code="Commands"/></button>
 		${commands}
 	</div>
 
@@ -127,15 +133,13 @@
 		function openNav() {
 			document.getElementById("mySidebar").style.width = "250px";
 			document.getElementById("main").style.marginLeft = "250px";
-			document.getElementById("openbtn").removeEventListener('click', openNav);
-			document.getElementById("openbtn").addEventListener('click', closeNav);
+			document.getElementById("openbtn").hidden = true;
 		}
 
 		function closeNav() {
 			document.getElementById("mySidebar").style.width = "0";
 			document.getElementById("main").style.marginLeft = "0";
-			document.getElementById("openbtn").removeEventListener('click', closeNav);
-			document.getElementById("openbtn").addEventListener('click', openNav);
+			document.getElementById("openbtn").hidden = false;
 		}
 	</script>
 

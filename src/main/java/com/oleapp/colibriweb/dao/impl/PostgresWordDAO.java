@@ -145,10 +145,10 @@ public class PostgresWordDAO extends ADataSource implements IWordDAO {
 				waitingWords = "''";
 			} else {
 				String firstWaitingWord = waitingWordList.get(0);
-				waitingWords = "'" + firstWaitingWord + "'";
+				waitingWords = "'" + firstWaitingWord.replaceAll("'", "''") + "'";
 				waitingWordList.remove(0);
 				for (String word : waitingWordList) {
-					waitingWords += ", '" + word + "'";
+					waitingWords += ", '" + word.replaceAll("'", "''") + "'";
 				}
 				waitingWordList.add(firstWaitingWord);
 			}

@@ -381,7 +381,15 @@ public class SecurityController {
 
 	@RequestMapping(value = "/auth/forgettable", method = RequestMethod.GET)
 	public ModelAndView forgettablePage(@RequestParam(value = "show_translate", required = false) final String show_translate,
-			@RequestParam(value = "all", required = false) final String all, Principal user, Locale locale) {
+			@RequestParam(value = "all", required = false) final String all, Principal user, Locale locale, HttpSession session) {
+
+		Long timezoneOffset = (Long) session.getAttribute("timezoneOffset");
+
+		if (timezoneOffset == null) {
+			timezoneOffset = AppSettings.TIMEZONE_OFFSET;
+		}
+
+		final Long timezoneOffsetFinal = timezoneOffset;
 
 		boolean isAll = ((all != null && all.equals("true")) ? true : false);
 
@@ -394,12 +402,12 @@ public class SecurityController {
 		wordList.forEach(w -> {
 			if (show_translate != null && w.getWord().equals(show_translate)) {
 				wordSB.append("<h3 id=\"translation\"><a href=\"forgettable?all=" + isAll + "\"><u>" + w.getRepeateIndicator()
-						+ " - " + localeSource.getMessage("b", null, locale) + w.getBox() + " - " + w.getWord() + " - "
-						+ w.getTranslate() + "</u></a></h3>");
+						+ " - " + w.obtainRepDateString(timezoneOffsetFinal) + " - " + localeSource.getMessage("b", null, locale)
+						+ w.getBox() + " - " + w.getWord() + " - " + w.getTranslate() + "</u></a></h3>");
 			} else {
 				wordSB.append("<p><a href=\"?all=" + isAll + "&show_translate=" + w.getWord() + "#translation\">"
-						+ w.getRepeateIndicator() + " - " + localeSource.getMessage("b", null, locale) + w.getBox() + " - "
-						+ w.getWord() + "</a></p>");
+						+ w.getRepeateIndicator() + " - " + w.obtainRepDateString(timezoneOffsetFinal) + " - "
+						+ localeSource.getMessage("b", null, locale) + w.getBox() + " - " + w.getWord() + "</a></p>");
 			}
 		});
 
@@ -452,11 +460,13 @@ public class SecurityController {
 
 			if (sort != null && sort.equals("date")) {
 				wordList.stream().sorted(Comparator.comparingLong(w -> w.obtainRepTime(timezoneOffsetFinal)))
-						.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord()
-								+ " - " + w.getTranslate() + "</p>"));
+						.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - "
+								+ localeSource.getMessage("b", null, locale) + w.getBox() + " - " + w.getWord() + " - "
+								+ w.getTranslate() + "</p>"));
 			} else {
-				wordList.forEach(w -> wordSB.append("<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + w.getWord()
-						+ " - " + w.getTranslate() + "</p>"));
+				wordList.forEach(w -> wordSB.append(
+						"<p>" + w.obtainRepDateString(timezoneOffsetFinal) + " - " + localeSource.getMessage("b", null, locale)
+								+ w.getBox() + " - " + w.getWord() + " - " + w.getTranslate() + "</p>"));
 			}
 		}
 
