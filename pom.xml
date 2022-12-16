@@ -11,7 +11,7 @@
 
 
 	<properties>
-		<org.springframework-version>4.3.5.RELEASE</org.springframework-version>
+		<org.springframework-version>5.2.20.RELEASE</org.springframework-version>
 		<org.aspectj-version>1.8.10</org.aspectj-version>
 		<org.slf4j-version>1.7.7</org.slf4j-version>
 		<spring-framework.version>4.3.5.RELEASE</spring-framework.version>
